@@ -6,4 +6,5 @@ void main() {
     IO.println(String.format("Hello and welcome!"));
     System.out.println("twoj stary 123");
 
+    System.out.println("gowno");
 }
