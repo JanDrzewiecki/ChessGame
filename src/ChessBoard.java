@@ -21,17 +21,22 @@ public class ChessBoard {
                 for (int j = 0; j < 8; j++) {
                     if ((j + i) % 2 == 0) {
                         JButton button = new JButton();
-                        button.setBorderPainted(false);   // bez obramówki
+                        button.setContentAreaFilled(false);
+                        button.setOpaque(true);              // ale tło z setBackground dalej jest malowane
+                        button.setBorderPainted(false);
                         button.setFocusPainted(false);
                         button.setBackground(Color.white);
                         panel.add(button);
                     }
                     else {
                         JButton button = new JButton();
+                        button.setContentAreaFilled(false);
+                        button.setOpaque(true);
                         button.setBorderPainted(false);   // bez obramówki
                         button.setFocusPainted(false);
                         button.setBackground(Color.black);
                         panel.add(button);
+
                     }
 
                 }
