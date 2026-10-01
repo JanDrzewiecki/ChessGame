@@ -3,6 +3,13 @@ import java.awt.*;
 
 
 public class ChessBoard {
+    private static Color mix(Color a, Color b, double t) {
+        return new Color(
+                (int) (a.getRed()   * (1 - t) + b.getRed()   * t),
+                (int) (a.getGreen() * (1 - t) + b.getGreen() * t),
+                (int) (a.getBlue()  * (1 - t) + b.getBlue()  * t)
+        );
+    }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("chess");
@@ -26,15 +33,28 @@ public class ChessBoard {
                         button.setBorderPainted(false);
                         button.setFocusPainted(false);
                         button.setBackground(Color.white);
+                        Color base = button.getBackground();
+                        Color pressed = mix(base, Color.GRAY, 0.4);   // 40% szarości
+
+                        button.getModel().addChangeListener(e ->
+                                button.setBackground(button.getModel().isPressed() ? pressed : base)
+                        );
                         panel.add(button);
+
                     }
                     else {
                         JButton button = new JButton();
                         button.setContentAreaFilled(false);
-                        button.setOpaque(true);
-                        button.setBorderPainted(false);   // bez obramówki
+                        button.setOpaque(true);              // ale tło z setBackground dalej jest malowane
+                        button.setBorderPainted(false);
                         button.setFocusPainted(false);
                         button.setBackground(Color.black);
+                        Color base = button.getBackground();
+                        Color pressed = mix(base, Color.GRAY, 0.4);   // 40% szarości
+
+                        button.getModel().addChangeListener(e ->
+                                button.setBackground(button.getModel().isPressed() ? pressed : base)
+                        );
                         panel.add(button);
 
                     }
