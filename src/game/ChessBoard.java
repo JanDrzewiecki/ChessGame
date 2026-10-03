@@ -4,6 +4,8 @@ import pieces.Piece;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
 public class ChessBoard extends JPanel {
@@ -11,11 +13,23 @@ public class ChessBoard extends JPanel {
     private final Image boardImage;
     private final PiecesLayout layout;
 
-
     public ChessBoard(PiecesLayout layout) {
         this.layout = layout;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
         setPreferredSize(new Dimension(640, 640));
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
+                int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
+                int y = (getHeight() - size) / 2;             // wyśrodkuj w pionie
+                int cell = size / 8;
+                int px = e.getX() - x;
+                int py = e.getY() - y;
+                int col = px / cell;
+                int row = py / cell;
+            }
+        });
     }
 
     @Override
