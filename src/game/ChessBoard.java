@@ -12,6 +12,8 @@ public class ChessBoard extends JPanel {
 
     private final Image boardImage;
     private final PiecesLayout layout;
+    private int selectedRow = -1;
+    private int selectedCol = -1;
 
     public ChessBoard(PiecesLayout layout) {
         this.layout = layout;
@@ -28,6 +30,22 @@ public class ChessBoard extends JPanel {
                 int py = e.getY() - y;
                 int col = px / cell;
                 int row = py / cell;
+                if (px < 0 || py < 0 || row > 7 || col > 7) return;
+                if (selectedRow == -1) {
+                    // pierwsze kliknięcie: wybierz tylko, jeśli stoi tam figura
+                    if (layout.getPiece(row, col) != null) {
+                        selectedRow = row;
+                        selectedCol = col;
+                        repaint();
+                    }
+                } else {
+                    if (row != selectedRow || col != selectedCol) {
+                        layout.movePiece(selectedRow, selectedCol, row, col);
+                    }
+                    selectedRow = -1;
+                    selectedCol = -1;
+                    repaint();
+                }
             }
         });
     }
@@ -37,9 +55,13 @@ public class ChessBoard extends JPanel {
         super.paintComponent(g);
         int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
         int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
-        int y = (getHeight() - size) / 2;             // wyśrodkuj w pionie
-        g.drawImage(boardImage, x, y, size, size, this);
+        int y = (getHeight() - size) / 2;
         int cell = size / 8;
+        g.drawImage(boardImage, x, y, size, size, this);
+        if (selectedRow != -1) {
+            g.setColor(new Color(128, 128, 128, 128));   // półprzezroczysty żółty
+            g.fillRect(x + selectedCol * cell, y + selectedRow * cell, cell, cell);
+        }
         for (byte i = 0; i < 8; i++) {
             for (byte j = 0; j < 8; j++) {
                 Piece piece = layout.getPiece(i, j);

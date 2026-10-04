@@ -2,6 +2,6 @@ package pieces;
 
 public class Knight extends Piece{
     public Knight (char color) {
-        super(color, 'K');
+        super(color, 'N');
     }
 }
