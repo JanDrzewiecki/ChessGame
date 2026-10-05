@@ -2,6 +2,9 @@ package game;
 
 import pieces.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PiecesLayout {
     private final Piece[][] board = new Piece[8][8];
 
@@ -55,5 +58,19 @@ public class PiecesLayout {
     public void movePiece(int currRow, int currCol, int toRow, int toCol) {
         board[toRow][toCol] = board[currRow][currCol];
         board[currRow][currCol] = null;
+    }
+
+    public boolean isInside(int row, int col) {
+        if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+            return true;
+        }
+        return false;
+    }
+
+    public List<int[]> getMovesFor(int row, int col) {
+        if (getPiece(row, col) == null) {
+            return new ArrayList<>();
+        }
+        return getPiece(row, col).getPossibleMoves(row, col, this);
     }
 }
