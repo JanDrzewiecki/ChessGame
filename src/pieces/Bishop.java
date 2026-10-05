@@ -5,7 +5,7 @@ import game.PiecesLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Bishop extends Piece{
+public class Bishop extends Piece {
     public Bishop (char color) {
         super(color, 'B');
     }
@@ -18,7 +18,7 @@ public class Bishop extends Piece{
             int r = row + d[0];
             int c = col + d[1];
 
-            while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            while (layout.isInside(r, c)) {
                 Piece other = layout.getPiece(r, c);
                 if (other == null) {
                     possibleMoves.add(new int[]{r, c});

@@ -5,7 +5,7 @@ import game.PiecesLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Knight extends Piece{
+public class Knight extends Piece {
     public Knight (char color) {
         super(color, 'N');
     }
@@ -20,7 +20,7 @@ public class Knight extends Piece{
             int r = row + i[0];
             int c = col + i[1];
 
-            if (r < 0 || r >= 8 || c < 0 || c >= 8) {
+            if (!layout.isInside(r, c)) {
                 continue;
             }
 

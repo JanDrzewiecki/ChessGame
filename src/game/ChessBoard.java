@@ -28,12 +28,12 @@ public class ChessBoard extends JPanel {
                 int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
                 int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
                 int y = (getHeight() - size) / 2;             // wyśrodkuj w pionie
-                int cell = size / 8;
+                int cell = size / PiecesLayout.BOARD_SIZE;
                 int px = e.getX() - x;
                 int py = e.getY() - y;
                 int col = px / cell;
                 int row = py / cell;
-                if (px < 0 || py < 0 || row > 7 || col > 7) return;
+                if (px < 0 || py < 0 || !layout.isInside(row, col)) return;
                 if (selectedRow == -1) {
                     if (layout.getPiece(row, col) != null) {
                         selectedRow = row;
@@ -64,7 +64,7 @@ public class ChessBoard extends JPanel {
         int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
         int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
         int y = (getHeight() - size) / 2;
-        int cell = size / 8;
+        int cell = size / PiecesLayout.BOARD_SIZE;
         g.drawImage(boardImage, x, y, size, size, this);
         if (selectedRow != -1) {
             g.setColor(new Color(128, 128, 128, 128));
@@ -74,8 +74,8 @@ public class ChessBoard extends JPanel {
         for (int[] m : possibleMoves) {
             g.fillRect(x + m[1] * cell, y + m[0] * cell, cell, cell);
         }
-        for (byte i = 0; i < 8; i++) {
-            for (byte j = 0; j < 8; j++) {
+        for (byte i = 0; i < PiecesLayout.BOARD_SIZE; i++) {
+            for (byte j = 0; j < PiecesLayout.BOARD_SIZE; j++) {
                 Piece piece = layout.getPiece(i, j);
                 if (piece != null) {
                     g.drawImage(piece.getIcon().getImage(), x + j * cell, y + i * cell, cell, cell, this);

@@ -5,7 +5,7 @@ import game.PiecesLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Rook extends Piece{
+public class Rook extends Piece {
     public Rook(char color) {
         super(color, 'R');
     }
@@ -15,7 +15,7 @@ public class Rook extends Piece{
         List<int[]> possibleMoves = new ArrayList<>();
 
         // w dół
-        for (int i = row + 1; i < 8; i++) {
+        for (int i = row + 1; i < PiecesLayout.BOARD_SIZE; i++) {
             Piece other = layout.getPiece(i, col);
             if (other == null) {
                 possibleMoves.add(new int[]{i, col});
@@ -41,7 +41,7 @@ public class Rook extends Piece{
         }
 
         // w prawo
-        for (int j = col + 1; j < 8; j++) {
+        for (int j = col + 1; j < PiecesLayout.BOARD_SIZE; j++) {
             Piece other = layout.getPiece(row, j);
             if (other == null) {
                 possibleMoves.add(new int[]{row, j});
