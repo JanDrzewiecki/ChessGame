@@ -1,8 +1,11 @@
 package pieces;
+import game.PiecesLayout;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
-public class Piece {
+public abstract class Piece {
     private char color;
     private char figure;
 
@@ -16,4 +19,9 @@ public class Piece {
         return icon;
     }
 
+    public char getColor() {
+        return color;
+    }
+
+    public abstract List<int[]> getPossibleMoves(int row, int col, PiecesLayout layout);
 }
