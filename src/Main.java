@@ -1,4 +1,5 @@
 import game.ChessBoard;
+import game.Game;
 import game.PiecesLayout;
 
 import javax.swing.*;
@@ -12,8 +13,9 @@ public class Main {
 
             PiecesLayout layout = new PiecesLayout();
             layout.setupStartPositions();
+            Game game = new Game(layout);
 
-            ChessBoard chessBoard = new ChessBoard(layout);
+            ChessBoard chessBoard = new ChessBoard(layout, game);
 
             // Panel for buttons
             JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15));

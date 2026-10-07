@@ -17,9 +17,12 @@ public class ChessBoard extends JPanel {
     private int selectedRow = -1;
     private int selectedCol = -1;
     private List<int[]> possibleMoves = new ArrayList<>();
+    private final Game game;
 
-    public ChessBoard(PiecesLayout layout) {
+
+    public ChessBoard(PiecesLayout layout, Game game) {
         this.layout = layout;
+        this.game = game;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
         setPreferredSize(new Dimension(640, 640));
         addMouseListener(new MouseAdapter() {
@@ -35,20 +38,14 @@ public class ChessBoard extends JPanel {
                 int row = py / cell;
                 if (px < 0 || py < 0 || !layout.isInside(row, col)) return;
                 if (selectedRow == -1) {
-                    if (layout.getPiece(row, col) != null) {
+                    if (game.canMove(row, col)) {
                         selectedRow = row;
                         selectedCol = col;
-                        possibleMoves = layout.getMovesFor(row, col);
+                        possibleMoves = game.getLegalMoves(row, col);
                         repaint();
                     }
                 } else {
-                    for (int[] i : possibleMoves) {
-                        if (row == i[0] && col == i[1]) {
-                            new Move(layout, selectedRow, selectedCol, row, col).apply(layout);
-                            break;
-                        }
-                    }
-
+                    game.tryMove(selectedRow, selectedCol, row, col);
                     selectedRow = -1;
                     selectedCol = -1;
                     possibleMoves = new ArrayList<>();
