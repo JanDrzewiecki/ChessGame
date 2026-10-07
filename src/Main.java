@@ -1,5 +1,6 @@
 import game.ChessBoard;
 import game.Game;
+import game.GameState;
 import game.PiecesLayout;
 
 import javax.swing.*;

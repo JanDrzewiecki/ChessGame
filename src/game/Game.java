@@ -10,6 +10,7 @@ public class Game {
     private char round = 'w';
     private final PiecesLayout layout;
     private final List<Move> history = new ArrayList<>();
+    private GameState state = GameState.PLAYING;
 
     public Game(PiecesLayout layout) {
         this.layout = layout;
@@ -17,9 +18,11 @@ public class Game {
 
     public char getTurn() {return round;}
 
+    public GameState getState() {return state;}
+
     public int[] getKing(char color) {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
+        for (int i = 0; i < PiecesLayout.BOARD_SIZE; i++) {
+            for (int j = 0; j < PiecesLayout.BOARD_SIZE; j++) {
                 if (layout.getPiece(i, j) instanceof King && color == layout.getPiece(i, j).getColor()) {
                     return new int[] {i, j};
                 }
@@ -59,8 +62,8 @@ public class Game {
         int row = getKing(color)[0];
         int col = getKing(color)[1];
 
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
+        for (int r = 0; r < PiecesLayout.BOARD_SIZE; r++) {
+            for (int c = 0; c < PiecesLayout.BOARD_SIZE; c++) {
                 if (layout.getPiece(r, c) == null || layout.getPiece(r, c).getColor() == color) {
                     continue;
                 } else {
@@ -77,8 +80,30 @@ public class Game {
         return false;
     }
 
+    public boolean hasAnyLegalMove(char color) {
+        for (int r = 0; r < PiecesLayout.BOARD_SIZE; r++) {
+            for (int c = 0; c < PiecesLayout.BOARD_SIZE; c++) {
+                if (layout.getPiece(r, c) == null || layout.getPiece(r, c).getColor() != color) {
+                    continue;
+                } else {
+                    if (!getLegalMoves(r, c).isEmpty()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public GameState evaluateState(char color) {
+        if (hasAnyLegalMove(color)) {
+            return GameState.PLAYING;
+        }
+        return isCheck(color) ? GameState.CHECKMATE : GameState.STALEMATE;
+    }
+
     public boolean tryMove(int selectedRow, int selectedCol, int toRow, int toCol) {
-        if (!canMove(selectedRow, selectedCol)) {
+        if (state != GameState.PLAYING || !canMove(selectedRow, selectedCol)) {
             return false;
         }
         List<int[]> possibleMoves = getLegalMoves(selectedRow, selectedCol);
@@ -92,10 +117,10 @@ public class Game {
                 } else {
                     round = 'w';
                 }
+                state = evaluateState(round);
                 return true;
             }
         }
         return false;
     }
-
 }

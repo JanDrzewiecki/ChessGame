@@ -79,6 +79,25 @@ public class ChessBoard extends JPanel {
                 }
             }
         }
+        GameState state = game.getState();
+        if (state == GameState.CHECKMATE) {
+            g.setColor(Color.RED);
+            g.setFont(new Font("SansSerif", Font.BOLD, size / 10));
+            String text = "CHECKMATE";
+            FontMetrics fm = g.getFontMetrics();
+            int tx = x + (size - fm.stringWidth(text)) / 2;
+            int ty = y + size / 2;
+            g.drawString(text, tx, ty);
+        } else if (state == GameState.STALEMATE) {
+            g.setColor(Color.RED);
+            g.setFont(new Font("SansSerif", Font.BOLD, size / 10));
+            String text = "STALEMATE";
+            FontMetrics fm = g.getFontMetrics();
+            int tx = x + (size - fm.stringWidth(text)) / 2;
+            int ty = y + size / 2;
+            g.drawString(text, tx, ty);
+
+        }
     }
 
 }
