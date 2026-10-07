@@ -56,9 +56,8 @@ public class PiecesLayout {
         return board[row][col];
     }
 
-    public void movePiece(int currRow, int currCol, int toRow, int toCol) {
-        board[toRow][toCol] = board[currRow][currCol];
-        board[currRow][currCol] = null;
+    public void setPiece(int row, int col, Piece piece) {
+        board[row][col] = piece;
     }
 
     public boolean isInside(int row, int col) {

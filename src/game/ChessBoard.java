@@ -44,7 +44,7 @@ public class ChessBoard extends JPanel {
                 } else {
                     for (int[] i : possibleMoves) {
                         if (row == i[0] && col == i[1]) {
-                            layout.movePiece(selectedRow, selectedCol, row, col);
+                            new Move(layout, selectedRow, selectedCol, row, col).apply(layout);
                             break;
                         }
                     }
