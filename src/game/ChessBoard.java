@@ -52,7 +52,13 @@ public class ChessBoard extends JPanel {
                         repaint();
                     }
                 } else {
-                    game.tryMove(selectedRow, selectedCol, row, col);
+                    boolean moved = game.tryMove(
+                            selectedRow, selectedCol, row, col
+                    );
+
+                    if (moved && game.needsPromotion(row, col)) {
+                        showPromotionDialog(row, col);
+                    }
                     selectedRow = -1;
                     selectedCol = -1;
                     possibleMoves = new ArrayList<>();
@@ -61,6 +67,137 @@ public class ChessBoard extends JPanel {
             }
         });
     }
+
+    private void showPromotionDialog(int row, int col) {
+
+        JFrame promotionPage = new JFrame("Promotion");
+        promotionPage.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        JPanel promotionPanel = new JPanel();
+        promotionPanel.setLayout(
+                new BoxLayout(promotionPanel, BoxLayout.X_AXIS)
+        );
+
+        Piece piece = layout.getPiece(row, col);
+        char color = piece.getColor();
+
+        // QUEEN
+        String queenPath = color == 'w'
+                ? "/pieces/wQ.png"
+                : "/pieces/bQ.png";
+
+        Image imageQ = new ImageIcon(
+                getClass().getResource(queenPath)
+        ).getImage();
+
+        imageQ = imageQ.getScaledInstance(
+                80, 80, Image.SCALE_SMOOTH
+        );
+
+        JButton queenButton = new JButton(
+                new ImageIcon(imageQ)
+        );
+
+
+        // ROOK
+        String rookPath = color == 'w'
+                ? "/pieces/wR.png"
+                : "/pieces/bR.png";
+
+        Image imageR = new ImageIcon(
+                getClass().getResource(rookPath)
+        ).getImage();
+
+        imageR = imageR.getScaledInstance(
+                80, 80, Image.SCALE_SMOOTH
+        );
+
+        JButton rookButton = new JButton(
+                new ImageIcon(imageR)
+        );
+
+
+        // BISHOP
+        String bishopPath = color == 'w'
+                ? "/pieces/wB.png"
+                : "/pieces/bB.png";
+
+        Image imageB = new ImageIcon(
+                getClass().getResource(bishopPath)
+        ).getImage();
+
+        imageB = imageB.getScaledInstance(
+                80, 80, Image.SCALE_SMOOTH
+        );
+
+        JButton bishopButton = new JButton(
+                new ImageIcon(imageB)
+        );
+
+
+        // KNIGHT
+        String knightPath = color == 'w'
+                ? "/pieces/wN.png"
+                : "/pieces/bN.png";
+
+        Image imageN = new ImageIcon(
+                getClass().getResource(knightPath)
+        ).getImage();
+
+        imageN = imageN.getScaledInstance(
+                80, 80, Image.SCALE_SMOOTH
+        );
+
+        JButton knightButton = new JButton(
+                new ImageIcon(imageN)
+        );
+
+
+        // BUTTONS
+        promotionPanel.add(queenButton);
+        promotionPanel.add(Box.createHorizontalStrut(20));
+
+        promotionPanel.add(rookButton);
+        promotionPanel.add(Box.createHorizontalStrut(20));
+
+        promotionPanel.add(bishopButton);
+        promotionPanel.add(Box.createHorizontalStrut(20));
+
+        promotionPanel.add(knightButton);
+
+
+        // ACTIONS
+        queenButton.addActionListener(e -> {
+            game.promote(row, col, 'Q');
+            promotionPage.dispose();
+            repaint();
+        });
+
+        rookButton.addActionListener(e -> {
+            game.promote(row, col, 'R');
+            promotionPage.dispose();
+            repaint();
+        });
+
+        bishopButton.addActionListener(e -> {
+            game.promote(row, col, 'B');
+            promotionPage.dispose();
+            repaint();
+        });
+
+        knightButton.addActionListener(e -> {
+            game.promote(row, col, 'N');
+            promotionPage.dispose();
+            repaint();
+        });
+
+
+        promotionPage.setContentPane(promotionPanel);
+        promotionPage.pack();
+        promotionPage.setLocationRelativeTo(this);
+        promotionPage.setVisible(true);
+    }
+
 
     private void createGameOverPanel(String result, Runnable mainMenuAction) {
 

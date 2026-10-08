@@ -1,8 +1,9 @@
 package game;
 
-import pieces.King;
-import pieces.Piece;
+import pieces.*;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ public class Game {
     private final PiecesLayout layout;
     private final List<Move> history = new ArrayList<>();
     private GameState state = GameState.PLAYING;
+    private Move pendingMove;
 
     public Game(PiecesLayout layout) {
         this.layout = layout;
@@ -51,6 +53,9 @@ public class Game {
     }
 
     public boolean canMove(int row, int col) {
+        if (pendingMove != null) {
+            return false;
+        }
         Piece piece = layout.getPiece(row, col);
         return piece != null && piece.getColor() == getTurn();
     }
@@ -102,27 +107,98 @@ public class Game {
         return isCheck(color) ? GameState.CHECKMATE : GameState.STALEMATE;
     }
 
+    public void promote(int row, int col, char PieceType) {
+        Piece pawn = layout.getPiece(row, col);
+        char color = pawn.getColor();
+
+        switch (PieceType) {
+            case 'Q':
+                layout.setPiece(row, col, new Queen(color));
+                break;
+            case 'R':
+                layout.setPiece(row, col, new Rook(color));
+                break;
+            case 'B':
+                layout.setPiece(row, col, new Bishop(color));
+                break;
+            case 'N':
+                layout.setPiece(row, col, new Knight(color));
+                break;
+        }
+        history.add(pendingMove);
+        pendingMove = null;
+
+        if (round == 'w') {
+            round = 'b';
+        } else {
+            round = 'w';
+        }
+
+        state = evaluateState(round);
+    }
+
+
+    public boolean needsPromotion(int row, int col) {
+        Piece piece = layout.getPiece(row, col);
+
+        return piece instanceof Pawn &&
+                (row == 0 || row == PiecesLayout.BOARD_SIZE - 1);
+    }
+
     public boolean tryMove(int selectedRow, int selectedCol, int toRow, int toCol) {
+
+        if (pendingMove != null) {
+            return false;
+        }
+
         if (state != GameState.PLAYING || !canMove(selectedRow, selectedCol)) {
             return false;
         }
+
         List<int[]> possibleMoves = getLegalMoves(selectedRow, selectedCol);
+
         for (int[] i : possibleMoves) {
+
             if (toRow == i[0] && toCol == i[1]) {
-                Move move = new Move(layout, selectedRow, selectedCol, toRow, toCol);
+
+                Move move = new Move(
+                        layout,
+                        selectedRow,
+                        selectedCol,
+                        toRow,
+                        toCol
+                );
+
                 move.apply(layout);
+
+                Piece piece = layout.getPiece(toRow, toCol);
+
+                // Promotion required
+                if (piece instanceof Pawn &&
+                        (toRow == 0 || toRow == PiecesLayout.BOARD_SIZE - 1)) {
+
+                    pendingMove = move;
+                    return true;
+                }
+
+                // Normal move
                 history.add(move);
-                if(round == 'w') {
+
+                if (round == 'w') {
                     round = 'b';
                 } else {
                     round = 'w';
                 }
+
                 state = evaluateState(round);
+
                 return true;
             }
         }
+
         return false;
     }
+
 
 
 }
