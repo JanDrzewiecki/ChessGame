@@ -18,13 +18,20 @@ public class ChessBoard extends JPanel {
     private int selectedCol = -1;
     private List<int[]> possibleMoves = new ArrayList<>();
     private  Game game;
+    private JPanel gameOverPanel;
+    private Runnable mainMenuAction;
 
 
-    public ChessBoard(PiecesLayout layout, Game game) {
+    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction) {
         this.layout = layout;
         this.game = game;
+        this.mainMenuAction = mainMenuAction;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
         setPreferredSize(new Dimension(640, 640));
+        setLayout(new OverlayLayout(this));
+
+
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -55,6 +62,52 @@ public class ChessBoard extends JPanel {
         });
     }
 
+    private void createGameOverPanel(String result, Runnable mainMenuAction) {
+
+        gameOverPanel = new JPanel();
+        gameOverPanel.setOpaque(false);
+
+
+        gameOverPanel.setLayout(
+                new BoxLayout(gameOverPanel, BoxLayout.Y_AXIS)
+        );
+
+        JLabel resultLabel = new JLabel();
+        resultLabel.setFont(
+                new Font("SansSerif", Font.BOLD, 50)
+        );
+        resultLabel.setForeground(Color.RED);
+        resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        resultLabel.setText(result);
+
+        JPanel buttons = new JPanel();
+        buttons.setOpaque(false);
+
+        JButton mainMenu = new JButton("Main Menu");
+        JButton exitGame = new JButton("Exit Game");
+
+        buttons.add(mainMenu);
+        buttons.add(Box.createHorizontalStrut(20));
+        buttons.add(exitGame);
+
+        gameOverPanel.add(Box.createVerticalGlue());
+        gameOverPanel.add(resultLabel);
+        gameOverPanel.add(Box.createVerticalStrut(30));
+        gameOverPanel.add(buttons);
+        gameOverPanel.add(Box.createVerticalGlue());
+
+        gameOverPanel.setVisible(false);
+
+        mainMenu.addActionListener(e -> {
+
+            mainMenuAction.run();
+
+        });
+        exitGame.addActionListener(e -> System.exit(0));
+
+        add(gameOverPanel);
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -81,22 +134,12 @@ public class ChessBoard extends JPanel {
         }
         GameState state = game.getState();
         if (state == GameState.CHECKMATE) {
-            g.setColor(Color.RED);
-            g.setFont(new Font("SansSerif", Font.BOLD, size / 10));
-            String text = "CHECKMATE";
-            FontMetrics fm = g.getFontMetrics();
-            int tx = x + (size - fm.stringWidth(text)) / 2;
-            int ty = y + size / 2;
-            g.drawString(text, tx, ty);
-            game = new Game(layout);
+            createGameOverPanel("CHECKMATE", mainMenuAction);
+            gameOverPanel.setVisible(true);
+
         } else if (state == GameState.STALEMATE) {
-            g.setColor(Color.RED);
-            g.setFont(new Font("SansSerif", Font.BOLD, size / 10));
-            String text = "STALEMATE";
-            FontMetrics fm = g.getFontMetrics();
-            int tx = x + (size - fm.stringWidth(text)) / 2;
-            int ty = y + size / 2;
-            g.drawString(text, tx, ty);
+            createGameOverPanel("STALEMATE", mainMenuAction);
+            gameOverPanel.setVisible(true);
 
         }
     }

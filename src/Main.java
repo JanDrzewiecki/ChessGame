@@ -81,12 +81,25 @@ public class Main {
             // Every new game gets a fresh layout, Game and board
             playerVsPlayerButton.addActionListener(e -> {
                 if (currentBoard[0] != null) {
-                    gamePanel.remove(currentBoard[0]);
+                    cardLayout.show(cards, "GAME");
+                    return;
                 }
                 PiecesLayout layout = new PiecesLayout();
                 layout.setupStartPositions();
                 Game game = new Game(layout);
-                currentBoard[0] = new ChessBoard(layout, game);
+                currentBoard[0] = new ChessBoard(
+                        layout,
+                        game,
+                        () -> {
+                            gamePanel.remove(currentBoard[0]);
+                            currentBoard[0] = null;
+
+                            gamePanel.revalidate();
+                            gamePanel.repaint();
+
+                            cardLayout.show(cards, "MENU");
+                        }
+                );
                 gamePanel.add(currentBoard[0], BorderLayout.CENTER);
                 gamePanel.revalidate();
                 gamePanel.repaint();
@@ -94,7 +107,17 @@ public class Main {
             });
 
             backToMainMenu.addActionListener(e -> cardLayout.show(cards, "MENU"));
-            forfeit.addActionListener(e -> cardLayout.show(cards, "MENU"));
+            forfeit.addActionListener(e -> {
+                if (currentBoard[0] != null) {
+                    gamePanel.remove(currentBoard[0]);
+                    currentBoard[0] = null;
+                }
+
+                gamePanel.revalidate();
+                gamePanel.repaint();
+
+                cardLayout.show(cards, "MENU");
+            });
             exit.addActionListener(e -> System.exit(0));
             exitButton.addActionListener(e -> System.exit(0));
 
