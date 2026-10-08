@@ -17,7 +17,7 @@ public class ChessBoard extends JPanel {
     private int selectedRow = -1;
     private int selectedCol = -1;
     private List<int[]> possibleMoves = new ArrayList<>();
-    private final Game game;
+    private  Game game;
 
 
     public ChessBoard(PiecesLayout layout, Game game) {
@@ -88,6 +88,7 @@ public class ChessBoard extends JPanel {
             int tx = x + (size - fm.stringWidth(text)) / 2;
             int ty = y + size / 2;
             g.drawString(text, tx, ty);
+            game = new Game(layout);
         } else if (state == GameState.STALEMATE) {
             g.setColor(Color.RED);
             g.setFont(new Font("SansSerif", Font.BOLD, size / 10));

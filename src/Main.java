@@ -1,6 +1,5 @@
 import game.ChessBoard;
 import game.Game;
-import game.GameState;
 import game.PiecesLayout;
 
 import javax.swing.*;
@@ -12,53 +11,102 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Chess");
 
-            PiecesLayout layout = new PiecesLayout();
-            layout.setupStartPositions();
-            Game game = new Game(layout);
+            // CardLayout lets us switch between screens
+            CardLayout cardLayout = new CardLayout();
+            JPanel cards = new JPanel(cardLayout);
 
-            ChessBoard chessBoard = new ChessBoard(layout, game);
-
-            // Panel for buttons
-            JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15));
-
+            // =========================
+            // MAIN MENU
+            // =========================
+            JPanel mainMenu = new JPanel();
+            mainMenu.setLayout(new BoxLayout(mainMenu, BoxLayout.Y_AXIS));
             JButton playerVsPlayerButton = new JButton("Player vs Player");
             JButton playerVsCpuButton = new JButton("Player vs CPU");
             JButton lessonsButton = new JButton("Lessons");
             JButton exitButton = new JButton("Exit");
 
-            buttonPanel.add(playerVsPlayerButton);
-            buttonPanel.add(playerVsCpuButton);
-            buttonPanel.add(lessonsButton);
-            buttonPanel.add(exitButton);
+            Dimension buttonSize = new Dimension(200, 60);
+            Dimension maxButtonSize = new Dimension(450, 90);
 
-            // Padding around the buttons
-            buttonPanel.setBorder(
-                    BorderFactory.createEmptyBorder(30, 10, 200, 10)
-            );
+            JButton[] menuButtons = {playerVsPlayerButton, playerVsCpuButton, lessonsButton, exitButton};
+            for (int i = 0; i < menuButtons.length; i++) {
+                JButton button = menuButtons[i];
+                button.setAlignmentX(Component.CENTER_ALIGNMENT);
+                button.setPreferredSize(buttonSize);
+                button.setMaximumSize(maxButtonSize);
+                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
+            }
 
-            // Main panel containing board + buttons
-            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainMenu.add(Box.createVerticalGlue());
+            mainMenu.add(playerVsPlayerButton);
+            mainMenu.add(Box.createVerticalStrut(20));
+            mainMenu.add(playerVsCpuButton);
+            mainMenu.add(Box.createVerticalStrut(20));
+            mainMenu.add(lessonsButton);
+            mainMenu.add(Box.createVerticalStrut(20));
+            mainMenu.add(exitButton);
+            mainMenu.add(Box.createVerticalGlue());
 
-            mainPanel.add(buttonPanel, BorderLayout.WEST);
-            mainPanel.add(chessBoard, BorderLayout.CENTER);
+            // =========================
+            // GAME SCREEN
+            // =========================
+            JPanel gamePanel = new JPanel(new BorderLayout());
+            JPanel topPanel = new JPanel(new BorderLayout());
 
-            frame.add(mainPanel);
+            JButton menuButton = new JButton("☰");
+            JPopupMenu popupMenu = new JPopupMenu();
 
+            JMenuItem backToMainMenu = new JMenuItem("Main Menu");
+            JMenuItem forfeit = new JMenuItem("Forfeit");
+            JMenuItem exit = new JMenuItem("Exit");
+
+            popupMenu.add(backToMainMenu);
+            popupMenu.add(forfeit);
+            popupMenu.addSeparator();
+            popupMenu.add(exit);
+
+            menuButton.addActionListener(e -> popupMenu.show(menuButton, 0, menuButton.getHeight()));
+
+            topPanel.add(menuButton, BorderLayout.WEST);
+            gamePanel.add(topPanel, BorderLayout.NORTH);
+
+            cards.add(mainMenu, "MENU");
+            cards.add(gamePanel, "GAME");
+
+            // =========================
+            // BUTTON ACTIONS
+            // =========================
+            ChessBoard[] currentBoard = new ChessBoard[1];
+
+            // Every new game gets a fresh layout, Game and board
+            playerVsPlayerButton.addActionListener(e -> {
+                if (currentBoard[0] != null) {
+                    gamePanel.remove(currentBoard[0]);
+                }
+                PiecesLayout layout = new PiecesLayout();
+                layout.setupStartPositions();
+                Game game = new Game(layout);
+                currentBoard[0] = new ChessBoard(layout, game);
+                gamePanel.add(currentBoard[0], BorderLayout.CENTER);
+                gamePanel.revalidate();
+                gamePanel.repaint();
+                cardLayout.show(cards, "GAME");
+            });
+
+            backToMainMenu.addActionListener(e -> cardLayout.show(cards, "MENU"));
+            forfeit.addActionListener(e -> cardLayout.show(cards, "MENU"));
+            exit.addActionListener(e -> System.exit(0));
+            exitButton.addActionListener(e -> System.exit(0));
+
+            // =========================
+            // FRAME
+            // =========================
+            frame.add(cards);
+            frame.setPreferredSize(new Dimension(640, 700));
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
-
-            exitButton.addActionListener(e -> {
-                exitButton.setOpaque(true);
-                exitButton.setBackground(Color.RED);
-                exitButton.setEnabled(false);
-                Timer timer = new Timer(50, event -> {
-                    System.exit(0);
-                });
-                timer.setRepeats(false);
-                timer.start();
-            });
         });
     }
 }
