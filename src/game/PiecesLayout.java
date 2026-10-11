@@ -27,6 +27,14 @@ public class PiecesLayout {
         return null;
     }
 
+    public void clearBoard() {
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                board[row][col] = null;
+            }
+        }
+    }
+
     public void setupStartPositions() {
         String piecesChars = "RNBQKBNR";
         char color;
@@ -52,6 +60,50 @@ public class PiecesLayout {
         }
     }
 
+    public void readFromRank(String rank, int rankNumber) {
+        int col = 0;
+
+        for (int i = 0; i < rank.length(); i++) {
+            char fig = rank.charAt(i);
+
+            if (Character.isDigit(fig)) {
+                col += Character.getNumericValue(fig);
+            } else {
+                char color;
+                if (Character.isUpperCase(fig)) {
+                    color = 'w';
+                } else {
+                    color = 'b';
+                }
+
+                char piece = Character.toUpperCase(fig);
+
+                board[rankNumber][col] = createPiece(color, piece);
+                col++;
+            }
+        }
+    }
+
+    public void setupFromFEN(String fen) {
+        String[] parts = fen.split(" ");
+        String position = parts[0];
+
+        for (int i = 0; i < 8; i++) {
+            int slashIndex = position.indexOf('/');
+
+            String rank;
+
+            if (slashIndex != -1) {
+                rank = position.substring(0, slashIndex);
+                position = position.substring(slashIndex + 1);
+            } else {
+                rank = position;
+            }
+
+            readFromRank(rank, i);
+        }
+    }
+
     public Piece getPiece(int row, int col) {
         return board[row][col];
     }
@@ -70,4 +122,6 @@ public class PiecesLayout {
         }
         return getPiece(row, col).getPossibleMoves(row, col, this);
     }
+
+    
 }
