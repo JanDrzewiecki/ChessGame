@@ -3,6 +3,11 @@ package game;
 import pieces.King;
 import pieces.Piece;
 import pieces.Rook;
+import pieces.Knight;
+import pieces.Bishop;
+import pieces.Queen;
+import pieces.Pawn;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -216,7 +221,7 @@ public class Game {
         for (int[] i : possibleMoves) {
             if (toRow == i[0] && toCol == i[1]) {
                 Move move = new Move(layout, selectedRow, selectedCol, toRow, toCol);
-                if (layout.getPiece(selectedRow, selectedCol) instanceof King king) {
+                if (layout.getPiece(selectedRow, selectedCol) instanceof King) {
                     if (toRow == selectedRow && toCol == selectedCol + 2) {
                         Move rooksMove = new Move(layout, selectedRow, selectedCol + 3, selectedRow, selectedCol + 1);
                         rooksMove.apply(layout);
@@ -226,14 +231,6 @@ public class Game {
 
                     }
                 }
-
-                Move move = new Move(
-                        layout,
-                        selectedRow,
-                        selectedCol,
-                        toRow,
-                        toCol
-                );
 
                 move.apply(layout);
 
