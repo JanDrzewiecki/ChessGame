@@ -38,11 +38,11 @@ public class ChessBoard extends JPanel {
                 int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
                 int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
                 int y = (getHeight() - size) / 2;             // wyśrodkuj w pionie
-                int cell = size / PiecesLayout.BOARD_SIZE;
+                double cell = size / (double) PiecesLayout.BOARD_SIZE;
                 int px = e.getX() - x;
                 int py = e.getY() - y;
-                int col = px / cell;
-                int row = py / cell;
+                int col = (int) (px / cell);
+                int row = (int) (py / cell);
                 if (px < 0 || py < 0 || !layout.isInside(row, col)) return;
                 if (selectedRow == -1) {
                     if (game.canMove(row, col)) {
@@ -108,27 +108,39 @@ public class ChessBoard extends JPanel {
         add(gameOverPanel);
     }
 
+    private void fillCell(Graphics g, int x, int y, double cell, int row, int col) {
+        int left = x + (int) Math.round(col * cell);
+        int top = y + (int) Math.round(row * cell);
+        int right = x + (int) Math.round((col + 1) * cell);
+        int bottom = y + (int) Math.round((row + 1) * cell);
+        g.fillRect(left, top, right - left, bottom - top);
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
         int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
         int y = (getHeight() - size) / 2;
-        int cell = size / PiecesLayout.BOARD_SIZE;
+        double cell = size / (double) PiecesLayout.BOARD_SIZE; // ułamkowe, żeby siatka pasowała do obrazka planszy
         g.drawImage(boardImage, x, y, size, size, this);
         if (selectedRow != -1) {
             g.setColor(new Color(128, 128, 128, 128));
-            g.fillRect(x + selectedCol * cell, y + selectedRow * cell, cell, cell);
+            fillCell(g, x, y, cell, selectedRow, selectedCol);
         }
         g.setColor(new Color(0, 200, 0, 120));           // półprzezroczysty zielony
         for (int[] m : possibleMoves) {
-            g.fillRect(x + m[1] * cell, y + m[0] * cell, cell, cell);
+            fillCell(g, x, y, cell, m[0], m[1]);
         }
         for (byte i = 0; i < PiecesLayout.BOARD_SIZE; i++) {
             for (byte j = 0; j < PiecesLayout.BOARD_SIZE; j++) {
                 Piece piece = layout.getPiece(i, j);
                 if (piece != null) {
-                    g.drawImage(piece.getIcon().getImage(), x + j * cell, y + i * cell, cell, cell, this);
+                    int left = x + (int) Math.round(j * cell);
+                    int top = y + (int) Math.round(i * cell);
+                    int right = x + (int) Math.round((j + 1) * cell);
+                    int bottom = y + (int) Math.round((i + 1) * cell);
+                    g.drawImage(piece.getIcon().getImage(), left, top, right - left, bottom - top, this);
                 }
             }
         }

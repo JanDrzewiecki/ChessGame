@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Rook extends Piece {
+    private boolean moved = false;
     public Rook(char color) {
         super(color, 'R');
     }
@@ -67,5 +68,13 @@ public class Rook extends Piece {
         }
 
         return possibleMoves;
+    }
+
+    public boolean hasMoved() {
+        return moved;
+    }
+
+    public void setMoved(boolean moved) {
+        this.moved = moved;
     }
 }

@@ -125,7 +125,6 @@ public class Main {
             // FRAME
             // =========================
             frame.add(cards);
-            frame.setPreferredSize(new Dimension(640, 700));
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
