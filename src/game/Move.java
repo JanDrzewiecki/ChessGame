@@ -1,6 +1,8 @@
 package game;
 
+import pieces.King;
 import pieces.Piece;
+import pieces.Rook;
 
 public class Move {
     private final int fromRow;
@@ -9,6 +11,7 @@ public class Move {
     private final int toCol;
     private final Piece movedPiece;
     private final Piece capturedPiece;
+    private boolean wasMoved = false;
 
     public Move(PiecesLayout layout, int fromRow, int fromCol, int toRow, int toCol) {
         this.fromRow = fromRow;
@@ -22,11 +25,27 @@ public class Move {
     public void apply(PiecesLayout layout) {
         layout.setPiece(toRow, toCol, movedPiece);
         layout.setPiece(fromRow, fromCol, null);
+        if (movedPiece instanceof Rook r) {
+            if(r.hasMoved()) {
+                wasMoved = true;
+            }
+            r.setMoved(true);
+        } else if (movedPiece instanceof King k) {
+            if (k.hasMoved()) {
+                wasMoved = true;
+            }
+            k.setMoved(true);
+        }
     }
 
     public void undo(PiecesLayout layout) {
         layout.setPiece(fromRow, fromCol, movedPiece);
         layout.setPiece(toRow, toCol, capturedPiece);
+        if (movedPiece instanceof King king) {
+            king.setMoved(wasMoved);
+        } else if (movedPiece instanceof Rook rook) {
+            rook.setMoved(wasMoved);
+        }
     }
 
     public int getFromRow() {

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class King extends Piece {
+    private boolean moved = false;
     public King (char color) {
         super(color, 'K');
     }
@@ -27,4 +28,13 @@ public class King extends Piece {
         }
         return possibleMoves;
     }
+
+    public boolean hasMoved() {
+        return moved;
+    }
+
+    public void setMoved(boolean moved) {
+        this.moved = moved;
+    }
+
 }
