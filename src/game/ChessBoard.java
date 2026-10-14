@@ -1,6 +1,7 @@
 package game;
 
 import pieces.Piece;
+import bots.RandomBot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.ArrayList;
+import javax.swing.Timer;
 
 
 public class ChessBoard extends JPanel {
@@ -20,12 +22,16 @@ public class ChessBoard extends JPanel {
     private  Game game;
     private JPanel gameOverPanel;
     private Runnable mainMenuAction;
+    private char botsColor;
+    private RandomBot randomBot;
 
 
-    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction) {
+    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, char botsColor, RandomBot randomBot) {
         this.layout = layout;
         this.game = game;
         this.mainMenuAction = mainMenuAction;
+        this.botsColor = botsColor;
+        this.randomBot = randomBot;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
         setPreferredSize(new Dimension(640, 640));
         setLayout(new OverlayLayout(this));
@@ -35,6 +41,9 @@ public class ChessBoard extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                if (game.getTurn() == botsColor) {
+                    return;
+                }
                 int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
                 int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
                 int y = (getHeight() - size) / 2;             // wyśrodkuj w pionie
@@ -61,6 +70,7 @@ public class ChessBoard extends JPanel {
                     if (moved && game.needsPromotion(boardRow, boardCol)) {
                         showPromotionDialog(boardRow, boardCol);
                     }
+                    botMove();
                     selectedRow = -1;
                     selectedCol = -1;
                     possibleMoves = new ArrayList<>();
@@ -68,6 +78,21 @@ public class ChessBoard extends JPanel {
                 }
             }
         });
+        if (botsColor == 'w') {
+            botMove();
+        }
+    }
+    public void botMove() {
+        if (game.getTurn() == botsColor) {
+            int[] moves = randomBot.move();
+            if (moves != null) {
+                game.tryMove(moves[0], moves[1], moves[2], moves[3]);
+                if (game.needsPromotion(moves[2], moves[3])) {
+                    game.promote(moves[2], moves[3], 'Q');
+                }
+            }
+        };
+        repaint();
     }
 
     private void showPromotionDialog(int row, int col) {
@@ -171,24 +196,28 @@ public class ChessBoard extends JPanel {
         // ACTIONS
         queenButton.addActionListener(e -> {
             game.promote(row, col, 'Q');
+            botMove();
             promotionPage.dispose();
             repaint();
         });
 
         rookButton.addActionListener(e -> {
             game.promote(row, col, 'R');
+            botMove();
             promotionPage.dispose();
             repaint();
         });
 
         bishopButton.addActionListener(e -> {
             game.promote(row, col, 'B');
+            botMove();
             promotionPage.dispose();
             repaint();
         });
 
         knightButton.addActionListener(e -> {
             game.promote(row, col, 'N');
+            botMove();
             promotionPage.dispose();
             repaint();
         });
@@ -248,6 +277,9 @@ public class ChessBoard extends JPanel {
     }
 
     public boolean isFliped() {
+        if (botsColor == 'w') {
+            return true;
+        }
         if (game.getTurn() == 'b') {
             return true;
         }
