@@ -14,6 +14,7 @@ import java.util.List;
 
 public class Game {
     private char round = 'w';
+
     private final PiecesLayout layout;
     private final List<Move> history = new ArrayList<>();
     private GameState state = GameState.PLAYING;
@@ -26,6 +27,16 @@ public class Game {
     public char getTurn() {return round;}
 
     public GameState getState() {return state;}
+
+    public void setRound(char round) {
+        if (round != 'w' && round != 'b') {
+            throw new IllegalArgumentException(
+                    "Round must be 'w' or 'b'"
+            );
+        }
+
+        this.round = round;
+    }
 
     public int[] getKing(char color) {
         for (int i = 0; i < PiecesLayout.BOARD_SIZE; i++) {

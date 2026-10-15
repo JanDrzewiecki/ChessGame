@@ -1,5 +1,6 @@
 import game.ChessBoard;
 import game.Game;
+import game.Lessons;
 import game.PiecesLayout;
 
 import javax.swing.*;
@@ -36,6 +37,8 @@ public class Main {
                 button.setMaximumSize(maxButtonSize);
                 button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
             }
+            lessonsButton.addActionListener(e -> Lessons.open());
+
 
             mainMenu.add(Box.createVerticalGlue());
             mainMenu.add(playerVsPlayerButton);
@@ -125,6 +128,7 @@ public class Main {
             // FRAME
             // =========================
             frame.add(cards);
+            frame.setPreferredSize(new Dimension(640, 700));
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
