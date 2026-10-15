@@ -70,6 +70,18 @@ public class Game {
                 legalMoves.add(m);
             }
         }
+        if (layout.getPiece(row, col) instanceof Pawn pawn) {
+            int[] pass = enPassant(row, col);
+            if (pass.length != 0) {
+                Move move = new Move(layout, row, col, pass[0], pass[1]);
+                move.apply(layout);
+                boolean safe = !isCheck(piece.getColor());
+                move.undo(layout);
+                if (safe) {
+                    legalMoves.add(pass);
+                }
+            }
+        }
         return legalMoves;
     }
 
@@ -124,7 +136,83 @@ public class Game {
         return castles;
     }
 
-
+    public int[] enPassant(int row, int col) {
+        if (!(layout.getPiece(row, col) instanceof Pawn pawn1)) {
+            return new int[]{};
+        }
+        if (pawn1.getColor() == 'w') {
+            if (layout.isInside(row, col + 1)) {
+                if (layout.getPiece(row, col + 1) instanceof Pawn pawn2) {
+                    if (pawn2.getColor() != pawn1.getColor()) {
+                        if (history.isEmpty()) {
+                            return new int[]{};
+                        }
+                        Move move = history.getLast();
+                        if (move.getToRow() == row && move.getToCol() == col + 1) {
+                            if (move.getMovedPiece() instanceof Pawn) {
+                                if (move.getToRow() - move.getFromRow() == 2) {
+                                    return new int[]{row - 1, col + 1};
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (layout.isInside(row, col - 1)) {
+                if (layout.getPiece(row, col - 1) instanceof Pawn pawn2) {
+                    if (pawn2.getColor() != pawn1.getColor()) {
+                        if (history.isEmpty()) {
+                            return new int[]{};
+                        }
+                        Move move = history.getLast();
+                        if (move.getToRow() == row && move.getToCol() == col - 1) {
+                            if (move.getMovedPiece() instanceof Pawn) {
+                                if (move.getToRow() - move.getFromRow() == 2) {
+                                    return new int[]{row - 1, col - 1};
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if (layout.isInside(row, col + 1)) {
+                if (layout.getPiece(row, col + 1) instanceof Pawn pawn2) {
+                    if (pawn2.getColor() != pawn1.getColor()) {
+                        if (history.isEmpty()) {
+                            return new int[]{};
+                        }
+                        Move move = history.getLast();
+                        if (move.getToRow() == row && move.getToCol() == col + 1) {
+                            if (move.getMovedPiece() instanceof Pawn) {
+                                if (move.getFromRow() - move.getToRow() == 2) {
+                                    return new int[]{row + 1, col + 1};
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (layout.isInside(row, col - 1)) {
+                if (layout.getPiece(row, col - 1) instanceof Pawn pawn2) {
+                    if (pawn2.getColor() != pawn1.getColor()) {
+                        if (history.isEmpty()) {
+                            return new int[]{};
+                        }
+                        Move move = history.getLast();
+                        if (move.getToRow() == row && move.getToCol() == col - 1) {
+                            if (move.getMovedPiece() instanceof Pawn) {
+                                if (move.getFromRow() - move.getToRow() == 2) {
+                                    return new int[]{row + 1, col - 1};
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new int[]{};
+    }
 
     public boolean canMove(int row, int col) {
         if (pendingMove != null) {
@@ -220,7 +308,6 @@ public class Game {
     }
 
     public boolean tryMove(int selectedRow, int selectedCol, int toRow, int toCol) {
-
         if (pendingMove != null) {
             return false;
         }
@@ -268,6 +355,4 @@ public class Game {
         }
         return false;
     }
-
-
 }

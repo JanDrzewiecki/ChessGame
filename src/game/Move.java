@@ -1,6 +1,7 @@
 package game;
 
 import pieces.King;
+import pieces.Pawn;
 import pieces.Piece;
 import pieces.Rook;
 
@@ -12,6 +13,7 @@ public class Move {
     private final Piece movedPiece;
     private final Piece capturedPiece;
     private boolean wasMoved = false;
+    private Piece wasPassant;
 
     public Move(PiecesLayout layout, int fromRow, int fromCol, int toRow, int toCol) {
         this.fromRow = fromRow;
@@ -24,22 +26,38 @@ public class Move {
 
     public void apply(PiecesLayout layout) {
         layout.setPiece(toRow, toCol, movedPiece);
-        layout.setPiece(fromRow, fromCol, null);
-        if (movedPiece instanceof Rook r) {
-            if(r.hasMoved()) {
-                wasMoved = true;
+        if (Math.abs(fromRow - toRow) == 1 && Math.abs(fromCol - toCol) == 1 && capturedPiece == null && movedPiece instanceof Pawn pawn) {
+            if (toCol == fromCol + 1) {
+                wasPassant = layout.getPiece(fromRow, toCol);
+                layout.setPiece(fromRow, fromCol, null);
+                layout.setPiece(fromRow, fromCol + 1, null);
+            } else {
+                wasPassant = layout.getPiece(fromRow, toCol);
+                layout.setPiece(fromRow, fromCol, null);
+                layout.setPiece(fromRow, fromCol - 1, null);
             }
-            r.setMoved(true);
-        } else if (movedPiece instanceof King k) {
-            if (k.hasMoved()) {
-                wasMoved = true;
+        }
+        else {
+            layout.setPiece(fromRow, fromCol, null);
+            if (movedPiece instanceof Rook r) {
+                if (r.hasMoved()) {
+                    wasMoved = true;
+                }
+                r.setMoved(true);
+            } else if (movedPiece instanceof King k) {
+                if (k.hasMoved()) {
+                    wasMoved = true;
+                }
+                k.setMoved(true);
             }
-            k.setMoved(true);
         }
     }
 
     public void undo(PiecesLayout layout) {
         layout.setPiece(fromRow, fromCol, movedPiece);
+        if (wasPassant != null) {
+            layout.setPiece(fromRow, toCol, wasPassant);
+        }
         layout.setPiece(toRow, toCol, capturedPiece);
         if (movedPiece instanceof King king) {
             king.setMoved(wasMoved);

@@ -43,21 +43,23 @@ public class ChessBoard extends JPanel {
                 int py = e.getY() - y;
                 int col = (int) (px / cell);
                 int row = (int) (py / cell);
-                if (px < 0 || py < 0 || !layout.isInside(row, col)) return;
+                int boardRow = whichCell(row, col)[0];
+                int boardCol = whichCell(row, col)[1];
+                if (px < 0 || py < 0 || !layout.isInside(boardRow, boardCol)) return;
                 if (selectedRow == -1) {
-                    if (game.canMove(row, col)) {
-                        selectedRow = row;
-                        selectedCol = col;
-                        possibleMoves = game.getLegalMoves(row, col);
+                    if (game.canMove(boardRow, boardCol)) {
+                        selectedRow = boardRow;
+                        selectedCol = boardCol;
+                        possibleMoves = game.getLegalMoves(boardRow, boardCol);
                         repaint();
                     }
                 } else {
                     boolean moved = game.tryMove(
-                            selectedRow, selectedCol, row, col
+                            selectedRow, selectedCol, boardRow, boardCol
                     );
 
-                    if (moved && game.needsPromotion(row, col)) {
-                        showPromotionDialog(row, col);
+                    if (moved && game.needsPromotion(boardRow, boardCol)) {
+                        showPromotionDialog(boardRow, boardCol);
                     }
                     selectedRow = -1;
                     selectedCol = -1;
@@ -245,6 +247,20 @@ public class ChessBoard extends JPanel {
         add(gameOverPanel);
     }
 
+    public boolean isFliped() {
+        if (game.getTurn() == 'b') {
+            return true;
+        }
+        return false;
+    }
+
+    public int[] whichCell(int row, int col) {
+        if (isFliped()) {
+            return new int[]{7 - row, 7 - col};
+        }
+        return new int[]{row, col};
+    }
+
     private void fillCell(Graphics g, int x, int y, double cell, int row, int col) {
         int left = x + (int) Math.round(col * cell);
         int top = y + (int) Math.round(row * cell);
@@ -263,20 +279,20 @@ public class ChessBoard extends JPanel {
         g.drawImage(boardImage, x, y, size, size, this);
         if (selectedRow != -1) {
             g.setColor(new Color(128, 128, 128, 128));
-            fillCell(g, x, y, cell, selectedRow, selectedCol);
+            fillCell(g, x, y, cell, whichCell(selectedRow, selectedCol)[0],whichCell(selectedRow, selectedCol)[1]);
         }
         g.setColor(new Color(0, 200, 0, 120));           // półprzezroczysty zielony
         for (int[] m : possibleMoves) {
-            fillCell(g, x, y, cell, m[0], m[1]);
+            fillCell(g, x, y, cell, whichCell(m[0], m[1])[0], whichCell(m[0], m[1])[1]);
         }
         for (byte i = 0; i < PiecesLayout.BOARD_SIZE; i++) {
             for (byte j = 0; j < PiecesLayout.BOARD_SIZE; j++) {
                 Piece piece = layout.getPiece(i, j);
                 if (piece != null) {
-                    int left = x + (int) Math.round(j * cell);
-                    int top = y + (int) Math.round(i * cell);
-                    int right = x + (int) Math.round((j + 1) * cell);
-                    int bottom = y + (int) Math.round((i + 1) * cell);
+                    int left = x + (int) Math.round(whichCell(i, j)[1] * cell);
+                    int top = y + (int) Math.round(whichCell(i, j)[0] * cell);
+                    int right = x + (int) Math.round((whichCell(i, j)[1] + 1) * cell);
+                    int bottom = y + (int) Math.round((whichCell(i, j)[0] + 1) * cell);
                     g.drawImage(piece.getIcon().getImage(), left, top, right - left, bottom - top, this);
                 }
             }
