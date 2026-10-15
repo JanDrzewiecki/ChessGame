@@ -1,9 +1,6 @@
 package game;
 
-import pieces.King;
-import pieces.Pawn;
-import pieces.Piece;
-import pieces.Rook;
+import pieces.*;
 
 public class Move {
     private final int fromRow;
@@ -14,6 +11,7 @@ public class Move {
     private final Piece capturedPiece;
     private boolean wasMoved = false;
     private Piece wasPassant;
+    private boolean castled = false;
 
     public Move(PiecesLayout layout, int fromRow, int fromCol, int toRow, int toCol) {
         this.fromRow = fromRow;
@@ -45,6 +43,16 @@ public class Move {
                 }
                 r.setMoved(true);
             } else if (movedPiece instanceof King k) {
+                if (fromRow == toRow && Math.abs(fromCol - toCol) == 2) {
+                    int rookFromCol = toCol > fromCol ? 7 : 0;
+                    int rookToCol = (fromCol + toCol) / 2;
+                    if (layout.getPiece(fromRow, rookFromCol) instanceof Rook rook && rook.getColor() == k.getColor()) {
+                        layout.setPiece(fromRow, rookToCol, rook);
+                        layout.setPiece(fromRow, rookFromCol, null);
+                        rook.setMoved(true);
+                        castled = true;
+                    }
+                }
                 if (k.hasMoved()) {
                     wasMoved = true;
                 }
@@ -59,12 +67,39 @@ public class Move {
             layout.setPiece(fromRow, toCol, wasPassant);
         }
         layout.setPiece(toRow, toCol, capturedPiece);
+        if (castled) {
+            int rookFromCol = toCol > fromCol ? 7 : 0;
+            int rookToCol = (fromCol + toCol) / 2;
+            if (layout.getPiece(fromRow, rookToCol) instanceof Rook rook) {
+                layout.setPiece(fromRow, rookFromCol, rook);
+                layout.setPiece(fromRow, rookToCol, null);
+                rook.setMoved(false);
+            }
+            castled = false;
+        }
         if (movedPiece instanceof King king) {
             king.setMoved(wasMoved);
         } else if (movedPiece instanceof Rook rook) {
             rook.setMoved(wasMoved);
         }
     }
+
+    public void promoteTo(PiecesLayout layout, char type) {
+        char color = layout.getPiece(toRow, toCol).getColor();
+        switch (type) {
+            case 'Q':
+                layout.setPiece(toRow, toCol, new Queen(color));
+                break;
+            case 'R':
+                layout.setPiece(toRow, toCol, new Rook(color));
+                break;
+            case 'B':
+                layout.setPiece(toRow, toCol, new Bishop(color));
+                break;
+            case 'N':
+                layout.setPiece(toRow, toCol, new Knight(color));
+                break;
+        }    }
 
     public int getFromRow() {
         return fromRow;

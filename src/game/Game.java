@@ -258,34 +258,20 @@ public class Game {
         return isCheck(color) ? GameState.CHECKMATE : GameState.STALEMATE;
     }
 
-    public void promote(int row, int col, char PieceType) {
-        Piece pawn = layout.getPiece(row, col);
-        char color = pawn.getColor();
+    public void promote(char PieceType) {
+        if (pendingMove != null) {
+            pendingMove.promoteTo(layout, PieceType);
+            history.add(pendingMove);
+            pendingMove = null;
 
-        switch (PieceType) {
-            case 'Q':
-                layout.setPiece(row, col, new Queen(color));
-                break;
-            case 'R':
-                layout.setPiece(row, col, new Rook(color));
-                break;
-            case 'B':
-                layout.setPiece(row, col, new Bishop(color));
-                break;
-            case 'N':
-                layout.setPiece(row, col, new Knight(color));
-                break;
+            if (round == 'w') {
+                round = 'b';
+            } else {
+                round = 'w';
+            }
+
+            state = evaluateState(round);
         }
-        history.add(pendingMove);
-        pendingMove = null;
-
-        if (round == 'w') {
-            round = 'b';
-        } else {
-            round = 'w';
-        }
-
-        state = evaluateState(round);
     }
 
 
@@ -308,16 +294,7 @@ public class Game {
         for (int[] i : possibleMoves) {
             if (toRow == i[0] && toCol == i[1]) {
                 Move move = new Move(layout, selectedRow, selectedCol, toRow, toCol);
-                if (layout.getPiece(selectedRow, selectedCol) instanceof King) {
-                    if (toRow == selectedRow && toCol == selectedCol + 2) {
-                        Move rooksMove = new Move(layout, selectedRow, selectedCol + 3, selectedRow, selectedCol + 1);
-                        rooksMove.apply(layout);
-                    } else if (toRow == selectedRow && toCol == selectedCol - 2) {
-                        Move rooksMove = new Move(layout, selectedRow, selectedCol - 4, selectedRow, selectedCol - 1);
-                        rooksMove.apply(layout);
 
-                    }
-                }
 
                 move.apply(layout);
 

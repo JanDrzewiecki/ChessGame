@@ -88,7 +88,7 @@ public class ChessBoard extends JPanel {
             if (moves != null) {
                 game.tryMove(moves[0], moves[1], moves[2], moves[3]);
                 if (game.needsPromotion(moves[2], moves[3])) {
-                    game.promote(moves[2], moves[3], 'Q');
+                    game.promote('Q');
                 }
             }
         };
@@ -195,28 +195,28 @@ public class ChessBoard extends JPanel {
 
         // ACTIONS
         queenButton.addActionListener(e -> {
-            game.promote(row, col, 'Q');
+            game.promote('Q');
             botMove();
             promotionPage.dispose();
             repaint();
         });
 
         rookButton.addActionListener(e -> {
-            game.promote(row, col, 'R');
+            game.promote('R');
             botMove();
             promotionPage.dispose();
             repaint();
         });
 
         bishopButton.addActionListener(e -> {
-            game.promote(row, col, 'B');
+            game.promote('B');
             botMove();
             promotionPage.dispose();
             repaint();
         });
 
         knightButton.addActionListener(e -> {
-            game.promote(row, col, 'N');
+            game.promote('N');
             botMove();
             promotionPage.dispose();
             repaint();
