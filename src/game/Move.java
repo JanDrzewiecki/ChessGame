@@ -12,14 +12,16 @@ public class Move {
     private boolean wasMoved = false;
     private Piece wasPassant;
     private boolean castled = false;
+    private char promotionType;
 
-    public Move(PiecesLayout layout, int fromRow, int fromCol, int toRow, int toCol) {
+    public Move(PiecesLayout layout, int fromRow, int fromCol, int toRow, int toCol, char promotionType) {
         this.fromRow = fromRow;
         this.fromCol = fromCol;
         this.toRow = toRow;
         this.toCol = toCol;
         this.movedPiece = layout.getPiece(fromRow, fromCol);
         this.capturedPiece = layout.getPiece(toRow, toCol);
+        this.promotionType = promotionType;
     }
 
     public void apply(PiecesLayout layout) {
@@ -124,4 +126,6 @@ public class Move {
     public Piece getCapturedPiece() {
         return capturedPiece;
     }
+
+    public char getPromotionType() {return promotionType;}
 }

@@ -77,4 +77,8 @@ public class Rook extends Piece {
     public void setMoved(boolean moved) {
         this.moved = moved;
     }
+    @Override
+    public int getPoint() {
+        return 5;
+    }
 }

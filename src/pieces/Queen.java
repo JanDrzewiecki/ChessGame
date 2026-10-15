@@ -39,4 +39,8 @@ public class Queen extends Piece {
 
         return possibleMoves;
     }
+    @Override
+    public int getPoint() {
+        return 9;
+    }
 }

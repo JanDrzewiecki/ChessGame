@@ -46,7 +46,7 @@ public class Game {
         }
         List<int[]> legalMoves = new ArrayList<>();
         for (int[] m : piece.getPossibleMoves(row, col, layout)) {
-            Move move = new Move(layout, row, col, m[0], m[1]);
+            Move move = new Move(layout, row, col, m[0], m[1], 'n');
             move.apply(layout);
             boolean safe = !isCheck(piece.getColor());
             move.undo(layout);
@@ -62,7 +62,7 @@ public class Game {
         if (layout.getPiece(row, col) instanceof Pawn pawn) {
             int[] pass = enPassant(row, col);
             if (pass.length != 0) {
-                Move move = new Move(layout, row, col, pass[0], pass[1]);
+                Move move = new Move(layout, row, col, pass[0], pass[1], 'n');
                 move.apply(layout);
                 boolean safe = !isCheck(piece.getColor());
                 move.undo(layout);
@@ -91,7 +91,7 @@ public class Game {
             boolean cast = true;
             if (rook.getColor() == color && !rook.hasMoved()) {
                 for (int i = 1; i < 3; i++) {
-                    Move move = new Move(layout, kingsRow, kingsCol, kingsRow, kingsCol + i);
+                    Move move = new Move(layout, kingsRow, kingsCol, kingsRow, kingsCol + i, 'n');
                     move.apply(layout);
                     if (isCheck(color)) {
                         cast = false;
@@ -110,7 +110,7 @@ public class Game {
             boolean cast = true;
             if (rook.getColor() == color && !rook.hasMoved()) {
                 for (int i = 1; i < 3; i++) {
-                    Move move = new Move(layout, kingsRow, kingsCol, kingsRow, kingsCol - i);
+                    Move move = new Move(layout, kingsRow, kingsCol, kingsRow, kingsCol - i, 'n');
                     move.apply(layout);
                     if (isCheck(color)) {
                         cast = false;
@@ -293,7 +293,7 @@ public class Game {
         List<int[]> possibleMoves = getLegalMoves(selectedRow, selectedCol);
         for (int[] i : possibleMoves) {
             if (toRow == i[0] && toCol == i[1]) {
-                Move move = new Move(layout, selectedRow, selectedCol, toRow, toCol);
+                Move move = new Move(layout, selectedRow, selectedCol, toRow, toCol, 'n');
 
 
                 move.apply(layout);
@@ -320,5 +320,67 @@ public class Game {
             }
         }
         return false;
+    }
+
+    public void makeMove(Move move) {
+        move.apply(layout);
+        if (move.getPromotionType() != 'n') {
+            move.promoteTo(layout, move.getPromotionType());
+        }
+        history.add(move);
+        if (round == 'w') {
+            round = 'b';
+        } else {
+            round = 'w';
+        }
+    }
+
+    public void undoMove() {
+        if (!history.isEmpty()) {
+            Move move = history.getLast();
+            history.remove(history.size() - 1);
+            move.undo(layout);
+            if (round == 'w') {
+                round = 'b';
+            } else {
+                round = 'w';
+            }
+        }
+    }
+
+    public List<Move> getAllMoves(char color) {
+        List<Move> allMoves = new ArrayList<>();
+        for (int r = 0; r < PiecesLayout.BOARD_SIZE; r++) {
+            for (int c = 0; c < PiecesLayout.BOARD_SIZE; c++) {
+                Piece piece = layout.getPiece(r, c);
+                if (piece != null && piece.getColor() == color) {
+                    for (int[] m: getLegalMoves(r, c)) {
+                        if (piece instanceof Pawn && (m[0] == 0 || m[0] == 7)) {
+                            allMoves.add(new Move(layout, r, c, m[0], m[1], 'Q'));
+                            allMoves.add(new Move(layout, r, c, m[0], m[1], 'N'));
+                            allMoves.add(new Move(layout, r, c, m[0], m[1], 'R'));
+                            allMoves.add(new Move(layout, r, c, m[0], m[1], 'B'));
+
+                        } else {
+                            allMoves.add(new Move(layout, r, c, m[0], m[1], 'n'));
+                        }
+                    }
+                }
+            }
+        }
+        return allMoves;
+    }
+
+    public int getPoints(char color) {
+        int sum = 0;
+        for (int r = 0; r < PiecesLayout.BOARD_SIZE; r++) {
+            for (int c = 0; c < PiecesLayout.BOARD_SIZE; c++) {
+                Piece piece = layout.getPiece(r, c);
+                if (piece != null && piece.getColor() == color) {
+                    sum += piece.getPoint();
+                }
+            }
+        }
+        return sum;
     }
 }

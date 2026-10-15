@@ -37,4 +37,9 @@ public class King extends Piece {
         this.moved = moved;
     }
 
+    @Override
+    public int getPoint() {
+        return 0;
+    }
+
 }

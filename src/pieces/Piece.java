@@ -24,4 +24,6 @@ public abstract class Piece {
     }
 
     public abstract List<int[]> getPossibleMoves(int row, int col, PiecesLayout layout);
+
+    public abstract int getPoint();
 }
