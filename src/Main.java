@@ -6,7 +6,62 @@ import game.PiecesLayout;
 import javax.swing.*;
 import java.awt.*;
 
+
 public class Main {
+
+    // Current PvP board (null when there is no PvP game in progress)
+    private static final ChessBoard[] currentBoard = new ChessBoard[1];
+
+    private static void startLesson(
+            String difficulty,
+            JPanel gamePanel,
+            JPanel topPanel,
+            CardLayout cardLayout,
+            JPanel cards,
+            JButton hintButton,
+            ChessBoard[] currentLessonBoard
+
+    ) {
+        gamePanel.removeAll();
+        currentBoard[0] = null;   // the PvP board was just removed
+        hintButton.setVisible(true);
+
+        ChessBoard lessonBoard = Lessons.createBoard(
+                difficulty,
+
+                // What happens when Main Menu is clicked
+                () -> {
+                    hintButton.setVisible(false);
+                    gamePanel.removeAll();
+                    gamePanel.add(topPanel, BorderLayout.NORTH);
+                    gamePanel.revalidate();
+                    gamePanel.repaint();
+                    cardLayout.show(cards, "MENU");
+                },
+
+                // What happens when Next Puzzle is clicked
+                () -> startLesson(
+                        difficulty,
+                        gamePanel,
+                        topPanel,
+                        cardLayout,
+                        cards,
+                        hintButton,
+                        currentLessonBoard
+                )
+        );
+
+        currentLessonBoard[0] = lessonBoard;
+
+        hintButton.setVisible(true);
+
+        gamePanel.add(topPanel, BorderLayout.NORTH);
+        gamePanel.add(lessonBoard, BorderLayout.CENTER);
+
+        gamePanel.revalidate();
+        gamePanel.repaint();
+        cardLayout.show(cards, "GAME");
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -25,7 +80,7 @@ public class Main {
             JButton playerVsCpuButton = new JButton("Player vs CPU");
             JButton lessonsButton = new JButton("Lessons");
             JButton exitButton = new JButton("Exit");
-
+            ChessBoard[] currentLessonBoard = new ChessBoard[1];
             Dimension buttonSize = new Dimension(200, 60);
             Dimension maxButtonSize = new Dimension(450, 90);
 
@@ -37,7 +92,6 @@ public class Main {
                 button.setMaximumSize(maxButtonSize);
                 button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
             }
-            lessonsButton.addActionListener(e -> Lessons.open());
 
 
             mainMenu.add(Box.createVerticalGlue());
@@ -56,6 +110,70 @@ public class Main {
             JPanel gamePanel = new JPanel(new BorderLayout());
             JPanel topPanel = new JPanel(new BorderLayout());
 
+            JButton easyButton = new JButton("Easy");
+            JButton mediumButton = new JButton("Medium");
+            JButton hardButton = new JButton("Hard");
+            JButton mainMenuButton = new JButton("Main Menu");
+            JPanel difficultyPanel = new JPanel();
+            difficultyPanel.setLayout(
+                    new BoxLayout(difficultyPanel, BoxLayout.Y_AXIS)
+            );
+            JButton[] diffButtons = {easyButton, mediumButton, hardButton, mainMenuButton};
+
+            JButton hintButton = new JButton("Hint");
+            hintButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            hintButton.setPreferredSize(buttonSize);
+            hintButton.setMaximumSize(maxButtonSize);
+            hintButton.setVisible(false);
+
+            hintButton.addActionListener(e -> {
+                if (currentLessonBoard[0] != null) {
+                    currentLessonBoard[0].activateHint();
+                }
+            });
+
+            for (int i = 0; i < diffButtons.length; i++) {
+                JButton button = diffButtons[i];
+                button.setAlignmentX(Component.CENTER_ALIGNMENT);
+                button.setPreferredSize(buttonSize);
+                button.setMaximumSize(maxButtonSize);
+                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
+            }
+
+            difficultyPanel.add(Box.createVerticalGlue());
+            difficultyPanel.add(easyButton);
+            difficultyPanel.add(Box.createVerticalStrut(20));
+            difficultyPanel.add(mediumButton);
+            difficultyPanel.add(Box.createVerticalStrut(20));
+            difficultyPanel.add(hardButton);
+            difficultyPanel.add(Box.createVerticalStrut(20));
+            difficultyPanel.add(mainMenuButton);
+            difficultyPanel.add(Box.createVerticalGlue());
+            lessonsButton.addActionListener(e -> {
+
+                cardLayout.show(cards, "DIFFICULTY");
+
+
+            });
+            easyButton.addActionListener(e ->
+                    startLesson("easy", gamePanel, topPanel, cardLayout, cards, hintButton, currentLessonBoard)
+            );
+
+            mediumButton.addActionListener(e ->
+                    startLesson("medium", gamePanel, topPanel, cardLayout, cards, hintButton, currentLessonBoard)
+
+            );
+
+            hardButton.addActionListener(e ->
+                    startLesson("difficult", gamePanel, topPanel, cardLayout, cards, hintButton, currentLessonBoard)
+            );
+
+            mainMenuButton.addActionListener(e -> {
+                hintButton.setVisible(false);
+                cardLayout.show(cards, "MENU");
+            });
+
+
             JButton menuButton = new JButton("☰");
             JPopupMenu popupMenu = new JPopupMenu();
 
@@ -70,23 +188,35 @@ public class Main {
 
             menuButton.addActionListener(e -> popupMenu.show(menuButton, 0, menuButton.getHeight()));
 
-            topPanel.add(menuButton, BorderLayout.WEST);
+            JPanel topLeftPanel = new JPanel();
+            topLeftPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+            topLeftPanel.add(menuButton);
+            topLeftPanel.add(hintButton);
+
+            topPanel.add(topLeftPanel, BorderLayout.WEST);
             gamePanel.add(topPanel, BorderLayout.NORTH);
 
             cards.add(mainMenu, "MENU");
             cards.add(gamePanel, "GAME");
+            cards.add(difficultyPanel, "DIFFICULTY");
 
             // =========================
             // BUTTON ACTIONS
             // =========================
-            ChessBoard[] currentBoard = new ChessBoard[1];
 
             // Every new game gets a fresh layout, Game and board
             playerVsPlayerButton.addActionListener(e -> {
+                hintButton.setVisible(false);
                 if (currentBoard[0] != null) {
                     cardLayout.show(cards, "GAME");
                     return;
                 }
+
+                // Clear anything left over (e.g. a lesson board) before building the PvP screen
+                gamePanel.removeAll();
+                gamePanel.add(topPanel, BorderLayout.NORTH);
+
                 PiecesLayout layout = new PiecesLayout();
                 layout.setupStartPositions();
                 Game game = new Game(layout);
@@ -109,8 +239,14 @@ public class Main {
                 cardLayout.show(cards, "GAME");
             });
 
-            backToMainMenu.addActionListener(e -> cardLayout.show(cards, "MENU"));
+            // TODO: Player vs CPU listener goes here; start it with hintButton.setVisible(false);
+
+            backToMainMenu.addActionListener(e -> {
+                hintButton.setVisible(false);
+                cardLayout.show(cards, "MENU");
+            });
             forfeit.addActionListener(e -> {
+                hintButton.setVisible(false);
                 if (currentBoard[0] != null) {
                     gamePanel.remove(currentBoard[0]);
                     currentBoard[0] = null;
@@ -123,6 +259,7 @@ public class Main {
             });
             exit.addActionListener(e -> System.exit(0));
             exitButton.addActionListener(e -> System.exit(0));
+
 
             // =========================
             // FRAME

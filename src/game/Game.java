@@ -355,4 +355,14 @@ public class Game {
         }
         return false;
     }
+    //for lessons
+    public String moveToUCI(int fromRow, int fromCol, int toRow, int toCol) {
+        char fromFile = (char) ('a' + fromCol);
+        char fromRank = (char) ('8' - fromRow);
+
+        char toFile = (char) ('a' + toCol);
+        char toRank = (char) ('8' - toRow);
+
+        return "" + fromFile + fromRank + toFile + toRank;
+    }
 }
