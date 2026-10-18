@@ -51,4 +51,8 @@ public class Pawn extends Piece {
         }
         return possibleMoves;
     }
+    @Override
+    public int getPoint() {
+        return 1;
+    }
 }

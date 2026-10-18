@@ -31,4 +31,8 @@ public class Knight extends Piece {
         }
         return possibleMoves;
     }
+    @Override
+    public int getPoint() {
+        return 3;
+    }
 }

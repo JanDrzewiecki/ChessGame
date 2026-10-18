@@ -1,9 +1,11 @@
 import game.ChessBoard;
 import game.Game;
 import game.PiecesLayout;
+import bots.RandomBot;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Random;
 
 public class Main {
 
@@ -87,6 +89,7 @@ public class Main {
                 PiecesLayout layout = new PiecesLayout();
                 layout.setupStartPositions();
                 Game game = new Game(layout);
+                char botsColor = 'n';
                 currentBoard[0] = new ChessBoard(
                         layout,
                         game,
@@ -98,7 +101,46 @@ public class Main {
                             gamePanel.repaint();
 
                             cardLayout.show(cards, "MENU");
-                        }
+                        },
+                        botsColor,
+                        null
+                );
+                gamePanel.add(currentBoard[0], BorderLayout.CENTER);
+                gamePanel.revalidate();
+                gamePanel.repaint();
+                cardLayout.show(cards, "GAME");
+            });
+
+            playerVsCpuButton.addActionListener(e -> {
+                if (currentBoard[0] != null) {
+                    cardLayout.show(cards, "GAME");
+                    return;
+                }
+                PiecesLayout layout = new PiecesLayout();
+                layout.setupStartPositions();
+                Game game = new Game(layout);
+                Random random = new Random();
+                char botsColor;
+                if (random.nextBoolean()) {
+                    botsColor = 'b';
+                } else {
+                    botsColor = 'w';
+                }
+                RandomBot randomBot = new RandomBot(botsColor, layout, game);
+                currentBoard[0] = new ChessBoard(
+                        layout,
+                        game,
+                        () -> {
+                            gamePanel.remove(currentBoard[0]);
+                            currentBoard[0] = null;
+
+                            gamePanel.revalidate();
+                            gamePanel.repaint();
+
+                            cardLayout.show(cards, "MENU");
+                        },
+                        botsColor,
+                        randomBot
                 );
                 gamePanel.add(currentBoard[0], BorderLayout.CENTER);
                 gamePanel.revalidate();
