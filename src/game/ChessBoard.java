@@ -350,7 +350,7 @@ public class ChessBoard extends JPanel {
         }
         if (game.getTurn() == 'b' && botsColor == 'n') {
             return true;
-            }
+        }
         if (botsColor == 'b') {
             return false;  // player is white
         }

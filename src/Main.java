@@ -96,10 +96,10 @@ public class Main {
         Game game = new Game(layout);
 
         char botsColor = 'n';
-        RandomBot randomBot = null;
+        MiniMax bot = null;
         if (vsCpu) {
             botsColor = new Random().nextBoolean() ? 'b' : 'w';
-            randomBot = new RandomBot(botsColor, layout, game);
+            bot = new MiniMax(botsColor, 4);
         }
 
         currentMode = mode;
@@ -117,7 +117,7 @@ public class Main {
                     cardLayout.show(cards, "MENU");
                 },
                 botsColor,
-                randomBot
+                bot
         );
         gamePanel.add(currentBoard[0], BorderLayout.CENTER);
         gamePanel.revalidate();
@@ -150,7 +150,8 @@ public class Main {
             Dimension maxButtonSize = new Dimension(450, 90);
 
             JButton[] menuButtons = {playerVsPlayerButton, playerVsCpuButton, lessonsButton, exitButton};
-            for (JButton button : menuButtons) {
+            for (int i = 0; i < menuButtons.length; i++) {
+                JButton button = menuButtons[i];
                 button.setAlignmentX(Component.CENTER_ALIGNMENT);
                 button.setPreferredSize(buttonSize);
                 button.setMaximumSize(maxButtonSize);
@@ -279,44 +280,8 @@ public class Main {
             backToMainMenu.addActionListener(e -> {
                 hintButton.setVisible(false);
                 cardLayout.show(cards, "MENU");
-            playerVsCpuButton.addActionListener(e -> {
-                if (currentBoard[0] != null) {
-                    cardLayout.show(cards, "GAME");
-                    return;
-                }
-                PiecesLayout layout = new PiecesLayout();
-                layout.setupStartPositions();
-                Game game = new Game(layout);
-                Random random = new Random();
-                char botsColor;
-                if (random.nextBoolean()) {
-                    botsColor = 'b';
-                } else {
-                    botsColor = 'w';
-                }
-                MiniMax bot = new MiniMax(botsColor, 4);
-                currentBoard[0] = new ChessBoard(
-                        layout,
-                        game,
-                        () -> {
-                            gamePanel.remove(currentBoard[0]);
-                            currentBoard[0] = null;
-
-                            gamePanel.revalidate();
-                            gamePanel.repaint();
-
-                            cardLayout.show(cards, "MENU");
-                        },
-                        botsColor,
-                        bot
-                );
-                gamePanel.add(currentBoard[0], BorderLayout.CENTER);
-                gamePanel.revalidate();
-                gamePanel.repaint();
-                cardLayout.show(cards, "GAME");
             });
 
-            backToMainMenu.addActionListener(e -> cardLayout.show(cards, "MENU"));
             forfeit.addActionListener(e -> {
                 hintButton.setVisible(false);
                 if (currentBoard[0] != null) {
