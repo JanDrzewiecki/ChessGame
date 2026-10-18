@@ -79,6 +79,11 @@ public class Rook extends Piece {
     }
     @Override
     public int getPoint() {
-        return 5;
+        return 500;
+    }
+
+    @Override
+    public char getFigure() {
+        return 'R';
     }
 }

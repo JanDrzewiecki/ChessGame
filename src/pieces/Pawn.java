@@ -53,6 +53,11 @@ public class Pawn extends Piece {
     }
     @Override
     public int getPoint() {
-        return 1;
+        return 100;
+    }
+
+    @Override
+    public char getFigure() {
+        return 'P';
     }
 }

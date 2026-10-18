@@ -42,4 +42,9 @@ public class King extends Piece {
         return 0;
     }
 
+    @Override
+    public char getFigure() {
+        return 'K';
+    }
+
 }

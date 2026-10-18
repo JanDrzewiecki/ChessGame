@@ -384,11 +384,37 @@ public class Game {
             for (int c = 0; c < PiecesLayout.BOARD_SIZE; c++) {
                 Piece piece = layout.getPiece(r, c);
                 if (piece != null && piece.getColor() == color) {
-                    sum += piece.getPoint();
+                    sum += piece.getPoint() + layout.getCircle(r, c) * 10;
                 }
             }
         }
         return sum;
+    }
+
+    public void setState(GameState s) {
+        state = s;
+    }
+
+    public void setHistory(List<Move> h) {
+        history.addAll(h);
+    }
+
+    public void setPendingMove(Move p) {
+        pendingMove = p;
+    }
+
+    public int getMovesCount() {
+        return history.size();
+    }
+
+    public Game copy() {
+        Game gameCopy = new Game(layout.copy());
+        gameCopy.setRound(getTurn());
+        gameCopy.setState(state);
+        gameCopy.setHistory(history);
+        gameCopy.setPendingMove(pendingMove);
+
+        return gameCopy;
     }
 
     // for lessons: converts board coordinates to a UCI square pair, e.g. "e2e4"

@@ -1,7 +1,7 @@
 package game;
 
 import pieces.Piece;
-import bots.RandomBot;
+import bots.Bot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,13 +19,14 @@ public class ChessBoard extends JPanel {
     private int selectedRow = -1;
     private int selectedCol = -1;
     private List<int[]> possibleMoves = new ArrayList<>();
-    private Game game;
+    private  Game game;
     private JPanel gameOverPanel;
     private Runnable mainMenuAction;
 
     // Player vs CPU ('n' = no bot)
     private char botsColor;
-    private RandomBot randomBot;
+    private Bot bot;
+    private boolean botThinking = false;
 
     // Lessons
     private Lessons lessons;
@@ -35,23 +36,22 @@ public class ChessBoard extends JPanel {
     private String hintSquare = null;
     private boolean puzzleSolvedShown = false;
 
-
     // Lessons constructor
     public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, Runnable nextPuzzleAction) {
         this(layout, game, mainMenuAction, 'n', null);
         this.nextPuzzleAction = nextPuzzleAction;
     }
 
-    // Player vs Player / Player vs CPU constructor
-    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, char botsColor, RandomBot randomBot) {
+    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, char botsColor, Bot bot) {
         this.layout = layout;
         this.game = game;
         this.mainMenuAction = mainMenuAction;
         this.botsColor = botsColor;
-        this.randomBot = randomBot;
+        this.bot = bot;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
         setPreferredSize(new Dimension(640, 640));
         setLayout(new OverlayLayout(this));
+
 
 
         addMouseListener(new MouseAdapter() {
@@ -160,16 +160,33 @@ public class ChessBoard extends JPanel {
     }
 
     public void botMove() {
-        if (randomBot != null && game.getTurn() == botsColor) {
-            int[] moves = randomBot.move();
-            if (moves != null) {
-                game.tryMove(moves[0], moves[1], moves[2], moves[3]);
-                if (game.needsPromotion(moves[2], moves[3])) {
-                    game.promote('Q');
-                }
-            }
+        if (bot == null || botThinking || game.getTurn() != botsColor || game.getState() != GameState.PLAYING) {
+            return;
         }
-        repaint();
+        botThinking = true;
+        Game gameCopy = game.copy();
+        new SwingWorker<int[], Void>() {
+            @Override
+            protected int[] doInBackground() {
+                return bot.move(gameCopy);
+            }
+            @Override
+            protected void done() {
+                botThinking = false;
+                try {
+                    int[] move = get();
+                    if (move != null && game.getTurn() == botsColor) {
+                        boolean moved = game.tryMove(move[0], move[1], move[2], move[3]);
+                        if (moved && game.needsPromotion(move[2], move[3])) {
+                            game.promote('Q');
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                repaint();
+            }
+        }.execute();
     }
 
     private JButton createPromotionButton(String path) {
@@ -331,6 +348,9 @@ public class ChessBoard extends JPanel {
         if (botsColor == 'w') {
             return true;   // player is black
         }
+        if (game.getTurn() == 'b' && botsColor == 'n') {
+            return true;
+            }
         if (botsColor == 'b') {
             return false;  // player is white
         }

@@ -1,4 +1,4 @@
-import bots.RandomBot;
+import bots.MiniMax;
 import game.ChessBoard;
 import game.Game;
 import game.Lessons;
@@ -9,8 +9,6 @@ import game.MenuButton;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
-
-
 
 public class Main {
 
@@ -131,6 +129,9 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Chess");
 
+            Image icon = Toolkit.getDefaultToolkit().getImage("resources/pieces/wP.png");
+            frame.setIconImage(icon);
+
             // CardLayout lets us switch between screens
             CardLayout cardLayout = new CardLayout();
             JPanel cards = new JPanel(cardLayout);
@@ -153,6 +154,7 @@ public class Main {
                 button.setAlignmentX(Component.CENTER_ALIGNMENT);
                 button.setPreferredSize(buttonSize);
                 button.setMaximumSize(maxButtonSize);
+                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
             }
 
 
@@ -277,7 +279,44 @@ public class Main {
             backToMainMenu.addActionListener(e -> {
                 hintButton.setVisible(false);
                 cardLayout.show(cards, "MENU");
+            playerVsCpuButton.addActionListener(e -> {
+                if (currentBoard[0] != null) {
+                    cardLayout.show(cards, "GAME");
+                    return;
+                }
+                PiecesLayout layout = new PiecesLayout();
+                layout.setupStartPositions();
+                Game game = new Game(layout);
+                Random random = new Random();
+                char botsColor;
+                if (random.nextBoolean()) {
+                    botsColor = 'b';
+                } else {
+                    botsColor = 'w';
+                }
+                MiniMax bot = new MiniMax(botsColor, 4);
+                currentBoard[0] = new ChessBoard(
+                        layout,
+                        game,
+                        () -> {
+                            gamePanel.remove(currentBoard[0]);
+                            currentBoard[0] = null;
+
+                            gamePanel.revalidate();
+                            gamePanel.repaint();
+
+                            cardLayout.show(cards, "MENU");
+                        },
+                        botsColor,
+                        bot
+                );
+                gamePanel.add(currentBoard[0], BorderLayout.CENTER);
+                gamePanel.revalidate();
+                gamePanel.repaint();
+                cardLayout.show(cards, "GAME");
             });
+
+            backToMainMenu.addActionListener(e -> cardLayout.show(cards, "MENU"));
             forfeit.addActionListener(e -> {
                 hintButton.setVisible(false);
                 if (currentBoard[0] != null) {
