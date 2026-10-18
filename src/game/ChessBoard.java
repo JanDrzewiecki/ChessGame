@@ -1,7 +1,7 @@
 package game;
 
 import pieces.Piece;
-import bots.RandomBot;
+import bots.Bot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,15 +23,16 @@ public class ChessBoard extends JPanel {
     private JPanel gameOverPanel;
     private Runnable mainMenuAction;
     private char botsColor;
-    private RandomBot randomBot;
+    private Bot bot;
+    private boolean botThinking = false;
 
 
-    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, char botsColor, RandomBot randomBot) {
+    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, char botsColor, Bot bot) {
         this.layout = layout;
         this.game = game;
         this.mainMenuAction = mainMenuAction;
         this.botsColor = botsColor;
-        this.randomBot = randomBot;
+        this.bot = bot;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
         setPreferredSize(new Dimension(640, 640));
         setLayout(new OverlayLayout(this));
@@ -83,16 +84,33 @@ public class ChessBoard extends JPanel {
         }
     }
     public void botMove() {
-        if (game.getTurn() == botsColor) {
-            int[] moves = randomBot.move();
-            if (moves != null) {
-                game.tryMove(moves[0], moves[1], moves[2], moves[3]);
-                if (game.needsPromotion(moves[2], moves[3])) {
-                    game.promote('Q');
-                }
+        if (bot == null || botThinking || game.getTurn() != botsColor || game.getState() != GameState.PLAYING) {
+            return;
+        }
+        botThinking = true;
+        Game gameCopy = game.copy();
+        new SwingWorker<int[], Void>() {
+            @Override
+            protected int[] doInBackground() {
+                return bot.move(gameCopy);
             }
-        };
-        repaint();
+            @Override
+            protected void done() {
+                botThinking = false;
+                try {
+                    int[] move = get();
+                    if (move != null && game.getTurn() == botsColor) {
+                        boolean moved = game.tryMove(move[0], move[1], move[2], move[3]);
+                        if (moved && game.needsPromotion(move[2], move[3])) {
+                            game.promote('Q');
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                repaint();
+            }
+        }.execute();
     }
 
     private void showPromotionDialog(int row, int col) {
@@ -280,7 +298,7 @@ public class ChessBoard extends JPanel {
         if (botsColor == 'w') {
             return true;
         }
-        if (game.getTurn() == 'b') {
+        if (game.getTurn() == 'b' && botsColor == 'n') {
             return true;
         }
         return false;

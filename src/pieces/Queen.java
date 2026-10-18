@@ -41,6 +41,10 @@ public class Queen extends Piece {
     }
     @Override
     public int getPoint() {
-        return 9;
+        return 900;
+    }
+    @Override
+    public char getFigure() {
+        return 'Q';
     }
 }

@@ -33,6 +33,11 @@ public class Knight extends Piece {
     }
     @Override
     public int getPoint() {
-        return 3;
+        return 300;
+    }
+
+    @Override
+    public char getFigure() {
+        return 'N';
     }
 }

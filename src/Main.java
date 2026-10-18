@@ -1,7 +1,7 @@
+import bots.MiniMax;
 import game.ChessBoard;
 import game.Game;
 import game.PiecesLayout;
-import bots.RandomBot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +12,9 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Chess");
+
+            Image icon = Toolkit.getDefaultToolkit().getImage("resources/pieces/wP.png");
+            frame.setIconImage(icon);
 
             // CardLayout lets us switch between screens
             CardLayout cardLayout = new CardLayout();
@@ -126,7 +129,7 @@ public class Main {
                 } else {
                     botsColor = 'w';
                 }
-                RandomBot randomBot = new RandomBot(botsColor, layout, game);
+                MiniMax bot = new MiniMax(botsColor, 4);
                 currentBoard[0] = new ChessBoard(
                         layout,
                         game,
@@ -140,7 +143,7 @@ public class Main {
                             cardLayout.show(cards, "MENU");
                         },
                         botsColor,
-                        randomBot
+                        bot
                 );
                 gamePanel.add(currentBoard[0], BorderLayout.CENTER);
                 gamePanel.revalidate();

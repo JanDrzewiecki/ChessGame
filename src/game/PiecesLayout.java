@@ -70,4 +70,35 @@ public class PiecesLayout {
         }
         return getPiece(row, col).getPossibleMoves(row, col, this);
     }
+
+    public int getCircle(int row, int col) {
+        return 1 + Math.min(Math.min(row, 7 - row), Math.min(col, 7 - col));
+    }
+
+    public PiecesLayout copy() {
+        PiecesLayout copyOfLayout = new PiecesLayout();
+        for (int r = 0; r < BOARD_SIZE; r++) {
+            for (int c = 0; c < BOARD_SIZE; c++) {
+                if (getPiece(r, c) == null) {
+                    copyOfLayout.setPiece(r, c, null);
+                } else if (getPiece(r, c) instanceof King k) {
+                    King king = (King) createPiece(k.getColor(), 'K');
+                    copyOfLayout.setPiece(r, c, king);
+                    if (k.hasMoved()) {
+                        king.setMoved(true);
+                    }
+                } else if (getPiece(r, c) instanceof Rook rk) {
+                    Rook rook = (Rook) createPiece(rk.getColor(), 'R');
+                    copyOfLayout.setPiece(r, c, rook);
+                    if (rk.hasMoved()) {
+                        rook.setMoved(true);
+                    }
+                } else {
+                    Piece piece = createPiece(getPiece(r, c).getColor(), getPiece(r, c).getFigure());
+                    copyOfLayout.setPiece(r, c, piece);
+                }
+            }
+        }
+        return copyOfLayout;
+    }
 }
