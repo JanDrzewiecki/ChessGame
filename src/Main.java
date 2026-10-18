@@ -3,10 +3,13 @@ import game.ChessBoard;
 import game.Game;
 import game.Lessons;
 import game.PiecesLayout;
+import game.BackgroundPanel;
+import game.MenuButton;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
+
 
 
 public class Main {
@@ -135,23 +138,21 @@ public class Main {
             // =========================
             // MAIN MENU
             // =========================
-            JPanel mainMenu = new JPanel();
+            JPanel mainMenu = new BackgroundPanel("/background/background.jpg");
             mainMenu.setLayout(new BoxLayout(mainMenu, BoxLayout.Y_AXIS));
-            JButton playerVsPlayerButton = new JButton("Player vs Player");
-            JButton playerVsCpuButton = new JButton("Player vs CPU");
-            JButton lessonsButton = new JButton("Lessons");
-            JButton exitButton = new JButton("Exit");
+            JButton playerVsPlayerButton = new MenuButton("Player vs Player");
+            JButton playerVsCpuButton = new MenuButton("Player vs CPU");
+            JButton lessonsButton = new MenuButton("Lessons");
+            JButton exitButton = new MenuButton("Exit");
             ChessBoard[] currentLessonBoard = new ChessBoard[1];
             Dimension buttonSize = new Dimension(200, 60);
             Dimension maxButtonSize = new Dimension(450, 90);
 
             JButton[] menuButtons = {playerVsPlayerButton, playerVsCpuButton, lessonsButton, exitButton};
-            for (int i = 0; i < menuButtons.length; i++) {
-                JButton button = menuButtons[i];
+            for (JButton button : menuButtons) {
                 button.setAlignmentX(Component.CENTER_ALIGNMENT);
                 button.setPreferredSize(buttonSize);
                 button.setMaximumSize(maxButtonSize);
-                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
             }
 
 
@@ -171,11 +172,14 @@ public class Main {
             JPanel gamePanel = new JPanel(new BorderLayout());
             JPanel topPanel = new JPanel(new BorderLayout());
 
-            JButton easyButton = new JButton("Easy");
-            JButton mediumButton = new JButton("Medium");
-            JButton hardButton = new JButton("Hard");
-            JButton mainMenuButton = new JButton("Main Menu");
-            JPanel difficultyPanel = new JPanel();
+            JButton easyButton = new MenuButton("Easy");
+            easyButton.setForeground(Color.GREEN);
+            JButton mediumButton = new MenuButton("Medium");
+            mediumButton.setForeground(Color.YELLOW);
+            JButton hardButton = new MenuButton("Hard");
+            hardButton.setForeground(Color.RED);
+            JButton mainMenuButton = new MenuButton("Main Menu");
+            JPanel difficultyPanel = new BackgroundPanel("/background/background.jpg");
             difficultyPanel.setLayout(
                     new BoxLayout(difficultyPanel, BoxLayout.Y_AXIS)
             );
@@ -183,7 +187,8 @@ public class Main {
 
             JButton hintButton = new JButton("Hint");
             hintButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-            hintButton.setPreferredSize(buttonSize);
+            Dimension hintButtonSize = new Dimension(100, 30);
+            hintButton.setPreferredSize(hintButtonSize);
             hintButton.setMaximumSize(maxButtonSize);
             hintButton.setVisible(false);
 

@@ -248,91 +248,71 @@ public class ChessBoard extends JPanel {
 
     private void createGameOverPanel(String result, Runnable mainMenuAction) {
 
-        gameOverPanel = new JPanel();
-        gameOverPanel.setOpaque(false);
-
-
-        gameOverPanel.setLayout(
-                new BoxLayout(gameOverPanel, BoxLayout.Y_AXIS)
-        );
+        gameOverPanel = new RoundedPanel(60);
+        gameOverPanel.setLayout(new BoxLayout(gameOverPanel, BoxLayout.Y_AXIS));
+        gameOverPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
 
         JLabel resultLabel = new JLabel();
-        resultLabel.setFont(
-                new Font("SansSerif", Font.BOLD, 50)
-        );
+        resultLabel.setFont(new Font("SansSerif", Font.BOLD, 50));
         resultLabel.setForeground(Color.RED);
         resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         resultLabel.setText(result);
 
         JPanel buttons = new JPanel();
         buttons.setOpaque(false);
+        buttons.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton mainMenu = new JButton("Main Menu");
-        JButton exitGame = new JButton("Exit Game");
+        JButton mainMenu = new MenuButton("Main Menu");
+        JButton exitGame = new MenuButton("Exit Game");
+        mainMenu.setPreferredSize(new Dimension(150, 45));
+        exitGame.setPreferredSize(new Dimension(150, 45));
 
         buttons.add(mainMenu);
         buttons.add(Box.createHorizontalStrut(20));
         buttons.add(exitGame);
 
-        gameOverPanel.add(Box.createVerticalGlue());
         gameOverPanel.add(resultLabel);
-        gameOverPanel.add(Box.createVerticalStrut(30));
+        gameOverPanel.add(Box.createVerticalStrut(25));
         gameOverPanel.add(buttons);
-        gameOverPanel.add(Box.createVerticalGlue());
 
         gameOverPanel.setVisible(false);
 
-        mainMenu.addActionListener(e -> {
-
-            mainMenuAction.run();
-
-        });
+        mainMenu.addActionListener(e -> mainMenuAction.run());
         exitGame.addActionListener(e -> System.exit(0));
 
         add(gameOverPanel);
     }
 
-
     private void createPuzzleCompletedPanel(Runnable mainMenuAction) {
 
-        JPanel puzzlePanel = new JPanel();
-        puzzlePanel.setOpaque(false);
-
-
-        puzzlePanel.setLayout(
-                new BoxLayout(puzzlePanel, BoxLayout.Y_AXIS)
-        );
+        JPanel puzzlePanel = new RoundedPanel(60);
+        puzzlePanel.setLayout(new BoxLayout(puzzlePanel, BoxLayout.Y_AXIS));
+        puzzlePanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
 
         JLabel completedTextLabel = new JLabel();
-        completedTextLabel.setFont(
-                new Font("SansSerif", Font.BOLD, 50)
-        );
+        completedTextLabel.setFont(new Font("SansSerif", Font.BOLD, 50));
         completedTextLabel.setForeground(Color.GREEN);
         completedTextLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         completedTextLabel.setText("Puzzle Solved");
 
         JPanel buttons = new JPanel();
         buttons.setOpaque(false);
+        buttons.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton nextPuzzle = new JButton("Next Puzzle");
-        JButton mainMenu = new JButton("Main Menu");
+        JButton nextPuzzle = new MenuButton("Next Puzzle");
+        JButton mainMenu = new MenuButton("Main Menu");
+        nextPuzzle.setPreferredSize(new Dimension(175, 45));
+        mainMenu.setPreferredSize(new Dimension(175, 45));
 
         buttons.add(nextPuzzle);
         buttons.add(Box.createHorizontalStrut(20));
         buttons.add(mainMenu);
 
-        puzzlePanel.add(Box.createVerticalGlue());
         puzzlePanel.add(completedTextLabel);
-        puzzlePanel.add(Box.createVerticalStrut(30));
+        puzzlePanel.add(Box.createVerticalStrut(25));
         puzzlePanel.add(buttons);
-        puzzlePanel.add(Box.createVerticalGlue());
 
-
-        mainMenu.addActionListener(e -> {
-
-            mainMenuAction.run();
-
-        });
+        mainMenu.addActionListener(e -> mainMenuAction.run());
         nextPuzzle.addActionListener(e -> {
             if (nextPuzzleAction != null) {
                 nextPuzzleAction.run();
