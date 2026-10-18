@@ -19,13 +19,30 @@ public class ChessBoard extends JPanel {
     private int selectedRow = -1;
     private int selectedCol = -1;
     private List<int[]> possibleMoves = new ArrayList<>();
-    private  Game game;
+    private Game game;
     private JPanel gameOverPanel;
     private Runnable mainMenuAction;
+
+    // Player vs CPU ('n' = no bot)
     private char botsColor;
     private RandomBot randomBot;
 
+    // Lessons
+    private Lessons lessons;
+    private Runnable nextPuzzleAction;
+    private Timer feedbackTimer;
+    private boolean showWrongMove = false;
+    private String hintSquare = null;
+    private boolean puzzleSolvedShown = false;
 
+
+    // Lessons constructor
+    public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, Runnable nextPuzzleAction) {
+        this(layout, game, mainMenuAction, 'n', null);
+        this.nextPuzzleAction = nextPuzzleAction;
+    }
+
+    // Player vs Player / Player vs CPU constructor
     public ChessBoard(PiecesLayout layout, Game game, Runnable mainMenuAction, char botsColor, RandomBot randomBot) {
         this.layout = layout;
         this.game = game;
@@ -37,16 +54,15 @@ public class ChessBoard extends JPanel {
         setLayout(new OverlayLayout(this));
 
 
-
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (game.getTurn() == botsColor) {
+                if (game.getTurn() == ChessBoard.this.botsColor) {
                     return;
                 }
-                int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
-                int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
-                int y = (getHeight() - size) / 2;             // wyśrodkuj w pionie
+                int size = Math.min(getWidth(), getHeight()); // keep the board square
+                int x = (getWidth() - size) / 2;              // center horizontally
+                int y = (getHeight() - size) / 2;             // center vertically
                 double cell = size / (double) PiecesLayout.BOARD_SIZE;
                 int px = e.getX() - x;
                 int py = e.getY() - y;
@@ -55,6 +71,10 @@ public class ChessBoard extends JPanel {
                 int boardRow = whichCell(row, col)[0];
                 int boardCol = whichCell(row, col)[1];
                 if (px < 0 || py < 0 || !layout.isInside(boardRow, boardCol)) return;
+
+                // Puzzle already solved -> ignore further clicks
+                if (lessons != null && lessons.isSolved()) return;
+
                 if (selectedRow == -1) {
                     if (game.canMove(boardRow, boardCol)) {
                         selectedRow = boardRow;
@@ -63,17 +83,73 @@ public class ChessBoard extends JPanel {
                         repaint();
                     }
                 } else {
-                    boolean moved = game.tryMove(
-                            selectedRow, selectedCol, boardRow, boardCol
-                    );
+                    // Clicked the same square -> just deselect
+                    if (boardRow == selectedRow && boardCol == selectedCol) {
+                        selectedRow = -1;
+                        selectedCol = -1;
+                        possibleMoves = new ArrayList<>();
+                        repaint();
+                        return;
+                    }
 
-                    if (moved && game.needsPromotion(boardRow, boardCol)) {
+                    // Clicked another of your own pieces -> reselect instead of a failed/wrong move
+                    if (game.canMove(boardRow, boardCol)) {
+                        selectedRow = boardRow;
+                        selectedCol = boardCol;
+                        possibleMoves = game.getLegalMoves(boardRow, boardCol);
+                        repaint();
+                        return;
+                    }
+
+                    boolean moved;
+
+                    if (lessons != null) {
+                        moved = lessons.checkMove(
+                                selectedRow, selectedCol,
+                                boardRow, boardCol
+                        );
+                        hintSquare = null;
+                        if (!moved) {
+                            showWrongMove = true;
+                            repaint();
+
+                            if (feedbackTimer != null) {
+                                feedbackTimer.stop();
+                            }
+
+                            feedbackTimer = new Timer(500, f -> {
+                                showWrongMove = false;
+                                repaint();
+                            });
+
+                            feedbackTimer.setRepeats(false);
+                            feedbackTimer.start();
+                        }
+                    } else {
+                        moved = game.tryMove(
+                                selectedRow, selectedCol,
+                                boardRow, boardCol
+                        );
+                    }
+
+                    // In lessons, promotion is applied automatically from the puzzle's move
+                    if (moved && lessons == null && game.needsPromotion(boardRow, boardCol)) {
                         showPromotionDialog(boardRow, boardCol);
                     }
-                    botMove();
+
+                    if (lessons == null) {
+                        botMove();
+                    }
+
                     selectedRow = -1;
                     selectedCol = -1;
                     possibleMoves = new ArrayList<>();
+
+                    if (moved && lessons != null && lessons.isSolved() && !puzzleSolvedShown) {
+                        puzzleSolvedShown = true;
+                        createPuzzleCompletedPanel(mainMenuAction);
+                        revalidate();
+                    }
                     repaint();
                 }
             }
@@ -82,8 +158,9 @@ public class ChessBoard extends JPanel {
             botMove();
         }
     }
+
     public void botMove() {
-        if (game.getTurn() == botsColor) {
+        if (randomBot != null && game.getTurn() == botsColor) {
             int[] moves = randomBot.move();
             if (moves != null) {
                 game.tryMove(moves[0], moves[1], moves[2], moves[3]);
@@ -91,8 +168,14 @@ public class ChessBoard extends JPanel {
                     game.promote('Q');
                 }
             }
-        };
+        }
         repaint();
+    }
+
+    private JButton createPromotionButton(String path) {
+        Image image = new ImageIcon(getClass().getResource(path)).getImage();
+        image = image.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+        return new JButton(new ImageIcon(image));
     }
 
     private void showPromotionDialog(int row, int col) {
@@ -108,77 +191,10 @@ public class ChessBoard extends JPanel {
         Piece piece = layout.getPiece(row, col);
         char color = piece.getColor();
 
-        // QUEEN
-        String queenPath = color == 'w'
-                ? "/pieces/wQ.png"
-                : "/pieces/bQ.png";
-
-        Image imageQ = new ImageIcon(
-                getClass().getResource(queenPath)
-        ).getImage();
-
-        imageQ = imageQ.getScaledInstance(
-                80, 80, Image.SCALE_SMOOTH
-        );
-
-        JButton queenButton = new JButton(
-                new ImageIcon(imageQ)
-        );
-
-
-        // ROOK
-        String rookPath = color == 'w'
-                ? "/pieces/wR.png"
-                : "/pieces/bR.png";
-
-        Image imageR = new ImageIcon(
-                getClass().getResource(rookPath)
-        ).getImage();
-
-        imageR = imageR.getScaledInstance(
-                80, 80, Image.SCALE_SMOOTH
-        );
-
-        JButton rookButton = new JButton(
-                new ImageIcon(imageR)
-        );
-
-
-        // BISHOP
-        String bishopPath = color == 'w'
-                ? "/pieces/wB.png"
-                : "/pieces/bB.png";
-
-        Image imageB = new ImageIcon(
-                getClass().getResource(bishopPath)
-        ).getImage();
-
-        imageB = imageB.getScaledInstance(
-                80, 80, Image.SCALE_SMOOTH
-        );
-
-        JButton bishopButton = new JButton(
-                new ImageIcon(imageB)
-        );
-
-
-        // KNIGHT
-        String knightPath = color == 'w'
-                ? "/pieces/wN.png"
-                : "/pieces/bN.png";
-
-        Image imageN = new ImageIcon(
-                getClass().getResource(knightPath)
-        ).getImage();
-
-        imageN = imageN.getScaledInstance(
-                80, 80, Image.SCALE_SMOOTH
-        );
-
-        JButton knightButton = new JButton(
-                new ImageIcon(imageN)
-        );
-
+        JButton queenButton = createPromotionButton("/pieces/" + color + "Q.png");
+        JButton rookButton = createPromotionButton("/pieces/" + color + "R.png");
+        JButton bishopButton = createPromotionButton("/pieces/" + color + "B.png");
+        JButton knightButton = createPromotionButton("/pieces/" + color + "N.png");
 
         // BUTTONS
         promotionPanel.add(queenButton);
@@ -276,14 +292,69 @@ public class ChessBoard extends JPanel {
         add(gameOverPanel);
     }
 
+
+    private void createPuzzleCompletedPanel(Runnable mainMenuAction) {
+
+        JPanel puzzlePanel = new JPanel();
+        puzzlePanel.setOpaque(false);
+
+
+        puzzlePanel.setLayout(
+                new BoxLayout(puzzlePanel, BoxLayout.Y_AXIS)
+        );
+
+        JLabel completedTextLabel = new JLabel();
+        completedTextLabel.setFont(
+                new Font("SansSerif", Font.BOLD, 50)
+        );
+        completedTextLabel.setForeground(Color.GREEN);
+        completedTextLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        completedTextLabel.setText("Puzzle Solved");
+
+        JPanel buttons = new JPanel();
+        buttons.setOpaque(false);
+
+        JButton nextPuzzle = new JButton("Next Puzzle");
+        JButton mainMenu = new JButton("Main Menu");
+
+        buttons.add(nextPuzzle);
+        buttons.add(Box.createHorizontalStrut(20));
+        buttons.add(mainMenu);
+
+        puzzlePanel.add(Box.createVerticalGlue());
+        puzzlePanel.add(completedTextLabel);
+        puzzlePanel.add(Box.createVerticalStrut(30));
+        puzzlePanel.add(buttons);
+        puzzlePanel.add(Box.createVerticalGlue());
+
+
+        mainMenu.addActionListener(e -> {
+
+            mainMenuAction.run();
+
+        });
+        nextPuzzle.addActionListener(e -> {
+            if (nextPuzzleAction != null) {
+                nextPuzzleAction.run();
+            }
+        });
+
+        add(puzzlePanel);
+        puzzlePanel.setVisible(true);
+    }
+
     public boolean isFliped() {
+        if (lessons != null) {
+            // Flip based on the player's colour, not on whose turn it is
+            return lessons.getPlayerColor() == 'b';
+        }
         if (botsColor == 'w') {
-            return true;
+            return true;   // player is black
         }
-        if (game.getTurn() == 'b') {
-            return true;
+        if (botsColor == 'b') {
+            return false;  // player is white
         }
-        return false;
+        return game.getTurn() == 'b';   // Player vs Player: board follows the side to move
     }
 
     public int[] whichCell(int row, int col) {
@@ -301,19 +372,34 @@ public class ChessBoard extends JPanel {
         g.fillRect(left, top, right - left, bottom - top);
     }
 
+    private void showHintSquare(String square, Graphics g) {
+        int col = square.charAt(0) - 'a';
+        int row = '8' - square.charAt(1);
+
+        int[] screenCell = whichCell(row, col);
+
+        int size = Math.min(getWidth(), getHeight());
+        double cell = size / (double) PiecesLayout.BOARD_SIZE;
+        int x = (getWidth() - size) / 2;
+        int y = (getHeight() - size) / 2;
+
+        g.setColor(new Color(0, 175, 255, 120));
+        fillCell(g, x, y, cell, screenCell[0], screenCell[1]);
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int size = Math.min(getWidth(), getHeight()); // zachowaj kwadrat
-        int x = (getWidth() - size) / 2;              // wyśrodkuj w poziomie
-        int y = (getHeight() - size) / 2;
-        double cell = size / (double) PiecesLayout.BOARD_SIZE; // ułamkowe, żeby siatka pasowała do obrazka planszy
+        int size = Math.min(getWidth(), getHeight()); // keep the board square
+        int x = (getWidth() - size) / 2;              // center horizontally
+        int y = (getHeight() - size) / 2;             // center vertically
+        double cell = size / (double) PiecesLayout.BOARD_SIZE; // fractional so the grid matches the board image
         g.drawImage(boardImage, x, y, size, size, this);
         if (selectedRow != -1) {
             g.setColor(new Color(128, 128, 128, 128));
-            fillCell(g, x, y, cell, whichCell(selectedRow, selectedCol)[0],whichCell(selectedRow, selectedCol)[1]);
+            fillCell(g, x, y, cell, whichCell(selectedRow, selectedCol)[0], whichCell(selectedRow, selectedCol)[1]);
         }
-        g.setColor(new Color(0, 200, 0, 120));           // półprzezroczysty zielony
+        g.setColor(new Color(0, 200, 0, 120));           // semi-transparent green
         for (int[] m : possibleMoves) {
             fillCell(g, x, y, cell, whichCell(m[0], m[1])[0], whichCell(m[0], m[1])[1]);
         }
@@ -329,16 +415,67 @@ public class ChessBoard extends JPanel {
                 }
             }
         }
+
+        // Game-over panel: only for normal games, and only created once
         GameState state = game.getState();
-        if (state == GameState.CHECKMATE) {
-            createGameOverPanel("CHECKMATE", mainMenuAction);
+        if (lessons == null && gameOverPanel == null
+                && (state == GameState.CHECKMATE || state == GameState.STALEMATE)) {
+            createGameOverPanel(state == GameState.CHECKMATE ? "CHECKMATE" : "STALEMATE", mainMenuAction);
             gameOverPanel.setVisible(true);
+            revalidate();
+        }
 
-        } else if (state == GameState.STALEMATE) {
-            createGameOverPanel("STALEMATE", mainMenuAction);
-            gameOverPanel.setVisible(true);
+        if (showWrongMove) {
+            Graphics2D g2 = (Graphics2D) g.create();
 
+            int rectWidth = 300;
+            int rectHeight = 70;
+
+            // Center the rectangle on the actual chessboard
+            int rectX = x + (size - rectWidth) / 2;
+            int rectY = y + (size - rectHeight) / 2;
+
+            g2.setColor(new Color(0, 0, 0, 150));
+            g2.fillRoundRect(
+                    rectX, rectY,
+                    rectWidth, rectHeight,
+                    15, 15
+            );
+
+            // Center the text inside the rectangle
+            g2.setFont(new Font("Arial", Font.BOLD, 26));
+            g2.setColor(Color.RED);
+
+            FontMetrics fm = g2.getFontMetrics();
+            String message = "Wrong Move!";
+
+            int textX = rectX + (rectWidth - fm.stringWidth(message)) / 2;
+            int textY = rectY + (rectHeight - fm.getHeight()) / 2
+                    + fm.getAscent();
+
+            g2.drawString(message, textX, textY);
+            g2.dispose();
+        }
+        if (hintSquare != null) {
+            showHintSquare(hintSquare, g);
         }
     }
 
+    public void setLessons(Lessons lessons) {
+        this.lessons = lessons;
+    }
+
+    public void activateHint() {
+        if (lessons == null) {
+            return; // Hints only work in puzzles
+        }
+
+        hintSquare = lessons.getHint();
+        repaint();
+    }
+
+    public void clearHint() {
+        hintSquare = null;
+        repaint();
+    }
 }

@@ -27,6 +27,13 @@ public class Game {
 
     public GameState getState() {return state;}
 
+    public void setRound(char round) {
+        if (round != 'w' && round != 'b') {
+            throw new IllegalArgumentException("Round must be 'w' or 'b'");
+        }
+        this.round = round;
+    }
+
     public int[] getKing(char color) {
         for (int i = 0; i < PiecesLayout.BOARD_SIZE; i++) {
             for (int j = 0; j < PiecesLayout.BOARD_SIZE; j++) {
@@ -86,8 +93,8 @@ public class Game {
             return castles;
         }
         if (layout.getPiece(kingsRow, kingsCol + 1) == null &&
-            layout.getPiece(kingsRow, kingsCol + 2) == null &&
-            layout.getPiece(kingsRow, kingsCol + 3) instanceof Rook rook) {
+                layout.getPiece(kingsRow, kingsCol + 2) == null &&
+                layout.getPiece(kingsRow, kingsCol + 3) instanceof Rook rook) {
             boolean cast = true;
             if (rook.getColor() == color && !rook.hasMoved()) {
                 for (int i = 1; i < 3; i++) {
@@ -104,9 +111,9 @@ public class Game {
             }
         }
         if (layout.getPiece(kingsRow, kingsCol - 1) == null &&
-            layout.getPiece(kingsRow, kingsCol - 2) == null &&
-            layout.getPiece(kingsRow, kingsCol - 3) == null &&
-            layout.getPiece(kingsRow, kingsCol - 4) instanceof Rook rook) {
+                layout.getPiece(kingsRow, kingsCol - 2) == null &&
+                layout.getPiece(kingsRow, kingsCol - 3) == null &&
+                layout.getPiece(kingsRow, kingsCol - 4) instanceof Rook rook) {
             boolean cast = true;
             if (rook.getColor() == color && !rook.hasMoved()) {
                 for (int i = 1; i < 3; i++) {
@@ -382,5 +389,14 @@ public class Game {
             }
         }
         return sum;
+    }
+
+    // for lessons: converts board coordinates to a UCI square pair, e.g. "e2e4"
+    public String moveToUCI(int fromRow, int fromCol, int toRow, int toCol) {
+        char fromFile = (char) ('a' + fromCol);
+        char fromRank = (char) ('8' - fromRow);
+        char toFile = (char) ('a' + toCol);
+        char toRank = (char) ('8' - toRow);
+        return "" + fromFile + fromRank + toFile + toRank;
     }
 }

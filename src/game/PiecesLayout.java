@@ -102,6 +102,33 @@ public class PiecesLayout {
 
             readFromRank(rank, i);
         }
+
+        applyCastlingRights(parts.length > 2 ? parts[2] : "-");
+    }
+
+    // Kings/rooks count as "moved" unless the FEN castling field says castling is still possible
+    private void applyCastlingRights(String rights) {
+        for (int r = 0; r < BOARD_SIZE; r++) {
+            for (int c = 0; c < BOARD_SIZE; c++) {
+                Piece p = board[r][c];
+                if (p instanceof King k) {
+                    boolean home = (k.getColor() == 'w' && r == 7 && c == 4)
+                            || (k.getColor() == 'b' && r == 0 && c == 4);
+                    boolean can = k.getColor() == 'w'
+                            ? (rights.contains("K") || rights.contains("Q"))
+                            : (rights.contains("k") || rights.contains("q"));
+                    k.setMoved(!(home && can));
+                } else if (p instanceof Rook rk) {
+                    boolean can = false;
+                    if (rk.getColor() == 'w' && r == 7) {
+                        can = (c == 7 && rights.contains("K")) || (c == 0 && rights.contains("Q"));
+                    } else if (rk.getColor() == 'b' && r == 0) {
+                        can = (c == 7 && rights.contains("k")) || (c == 0 && rights.contains("q"));
+                    }
+                    rk.setMoved(!can);
+                }
+            }
+        }
     }
 
     public Piece getPiece(int row, int col) {
@@ -123,5 +150,5 @@ public class PiecesLayout {
         return getPiece(row, col).getPossibleMoves(row, col, this);
     }
 
-    
+
 }
