@@ -23,12 +23,11 @@ public class MiniMax implements Bot{
         List<Integer> values = new ArrayList<>();
         for (Move m : moves) {
             game.makeMove(m);
-            int value = minimax(game, depth - 1);
+            int value = minimax(game, depth - 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
             bestValue = Math.max(bestValue, value);
             values.add(value);
             game.undoMove();
         }
-        // w otwarciu (pierwsze 5 ruchow kazdej strony) tolerancja 10, potem tylko najlepsze ruchy
         int tolerance = game.getMovesCount() < 10 ? 10 : 0;
         for (int i = 0; i < moves.size(); i++) {
             if (values.get(i) >= bestValue - tolerance) {
@@ -43,7 +42,7 @@ public class MiniMax implements Bot{
         return new int[]{bestMoves.get(index).getFromRow(), bestMoves.get(index).getFromCol(), bestMoves.get(index).getToRow(), bestMoves.get(index).getToCol()};
     }
 
-    public int minimax(Game game, int depth) {
+    public int minimax(Game game, int depth, int alpha, int beta) {
         int bestValue;
         char oponentsColor;
         if (color == 'w') {
@@ -72,11 +71,16 @@ public class MiniMax implements Bot{
         for (Move m : moves) {
             game.makeMove(m);
             if (botsMove) {
-                bestValue = Math.max(bestValue, minimax(game, depth - 1));
+                bestValue = Math.max(bestValue, minimax(game, depth - 1, alpha, beta));
+                alpha = Math.max(alpha, bestValue);
             } else {
-                bestValue = Math.min(bestValue, minimax(game, depth - 1));
+                bestValue = Math.min(bestValue, minimax(game, depth - 1, alpha, beta));
+                beta = Math.min(beta, bestValue);
             }
             game.undoMove();
+            if (beta <= alpha) {
+                break;
+            }
         }
         return bestValue;
     }

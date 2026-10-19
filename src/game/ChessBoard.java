@@ -49,8 +49,11 @@ public class ChessBoard extends JPanel {
         this.botsColor = botsColor;
         this.bot = bot;
         boardImage = new ImageIcon(getClass().getResource("/board/board_brown.png")).getImage();
+        setBackground(new Color(63, 63, 63));
+        setOpaque(true);
         setPreferredSize(new Dimension(640, 640));
         setLayout(new OverlayLayout(this));
+        setOpaque(true);
 
 
 
@@ -192,15 +195,19 @@ public class ChessBoard extends JPanel {
     private JButton createPromotionButton(String path) {
         Image image = new ImageIcon(getClass().getResource(path)).getImage();
         image = image.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-        return new JButton(new ImageIcon(image));
+
+        return new PromotionButton(new ImageIcon(image));
     }
 
     private void showPromotionDialog(int row, int col) {
 
-        JFrame promotionPage = new JFrame("Promotion");
-        promotionPage.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        JDialog promotionPage = new JDialog(SwingUtilities.getWindowAncestor(this), "Promotion");
+        promotionPage.setUndecorated(true);
+        promotionPage.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        promotionPage.setAlwaysOnTop(true);
 
         JPanel promotionPanel = new JPanel();
+        promotionPanel.setBackground(new Color(95, 95, 95));
         promotionPanel.setLayout(
                 new BoxLayout(promotionPanel, BoxLayout.X_AXIS)
         );
@@ -347,9 +354,6 @@ public class ChessBoard extends JPanel {
         }
         if (botsColor == 'w') {
             return true;   // player is black
-        }
-        if (game.getTurn() == 'b' && botsColor == 'n') {
-            return true;
         }
         if (botsColor == 'b') {
             return false;  // player is white
