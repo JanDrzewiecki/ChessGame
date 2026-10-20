@@ -127,8 +127,7 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Chess");
-
-            Image icon = Toolkit.getDefaultToolkit().getImage("resources/pieces/wP.png");
+            Image icon = Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/pieces/wP.png"));
             frame.setIconImage(icon);
 
             // CardLayout lets us switch between screens
