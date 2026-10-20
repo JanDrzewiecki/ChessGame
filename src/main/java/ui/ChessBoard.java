@@ -1,5 +1,9 @@
-package game;
+package ui;
 
+import game.Game;
+import game.GameState;
+import lessons.Lessons;
+import game.PiecesLayout;
 import pieces.Piece;
 import bots.Bot;
 
@@ -19,7 +23,7 @@ public class ChessBoard extends JPanel {
     private int selectedRow = -1;
     private int selectedCol = -1;
     private List<int[]> possibleMoves = new ArrayList<>();
-    private  Game game;
+    private Game game;
     private JPanel gameOverPanel;
     private Runnable mainMenuAction;
 

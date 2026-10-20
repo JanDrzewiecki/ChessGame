@@ -1,4 +1,4 @@
-package game;
+package lessons;
 
 public class Puzzle {
 

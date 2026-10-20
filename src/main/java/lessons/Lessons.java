@@ -1,4 +1,8 @@
-package game;
+package lessons;
+
+import game.Game;
+import game.PiecesLayout;
+import ui.ChessBoard;
 
 public class Lessons {
 

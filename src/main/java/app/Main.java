@@ -1,10 +1,12 @@
+package app;
+
 import bots.MiniMax;
-import game.ChessBoard;
+import ui.ChessBoard;
 import game.Game;
-import game.Lessons;
+import lessons.Lessons;
 import game.PiecesLayout;
-import game.BackgroundPanel;
-import game.MenuButton;
+import ui.BackgroundPanel;
+import ui.MenuButton;
 
 import javax.swing.*;
 import java.awt.*;
