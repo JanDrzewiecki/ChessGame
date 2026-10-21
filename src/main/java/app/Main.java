@@ -10,9 +10,12 @@ import ui.MenuButton;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
 import java.util.Random;
 
 public class Main {
+
 
     // Current PvP / CPU board (null when no such game is in progress)
     private static final ChessBoard[] currentBoard = new ChessBoard[1];
@@ -125,6 +128,9 @@ public class Main {
         gamePanel.repaint();
         cardLayout.show(cards, "GAME");
     }
+
+    private static boolean isFullscreen = true;
+    private static Rectangle previousBounds;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -367,14 +373,65 @@ public class Main {
             // =========================
             // FRAME
             // =========================
+
+
             frame.add(cards);
             frame.setPreferredSize(new Dimension(640, 700));
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+
             frame.setUndecorated(true);
             frame.pack();
-            GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+            GraphicsDevice screen = GraphicsEnvironment
+                    .getLocalGraphicsEnvironment().getDefaultScreenDevice();
+
             frame.setBounds(screen.getDefaultConfiguration().getBounds());
+            setupFullscreen(frame);
             frame.setVisible(true);
         });
     }
+    private static void setupFullscreen(JFrame frame) {
+        frame.getRootPane().getInputMap(
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+        ).put(KeyStroke.getKeyStroke("F11"), "toggleFullscreen");
+
+        frame.getRootPane().getActionMap().put(
+                "toggleFullscreen",
+                new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        GraphicsDevice screen = GraphicsEnvironment
+                                .getLocalGraphicsEnvironment()
+                                .getDefaultScreenDevice();
+
+                        if (!isFullscreen) {
+                            previousBounds = frame.getBounds();
+
+                            frame.dispose();
+                            frame.setUndecorated(true);
+                            frame.setBounds(
+                                    screen.getDefaultConfiguration().getBounds()
+                            );
+                            frame.setVisible(true);
+
+                            isFullscreen = true;
+                        } else {
+                            frame.dispose();
+                            frame.setUndecorated(false);
+
+                            if (previousBounds != null) {
+                                frame.setBounds(previousBounds);
+                            } else {
+                                frame.setSize(640, 700);
+                                frame.setLocationRelativeTo(null);
+                            }
+
+                            frame.setVisible(true);
+                            isFullscreen = false;
+                        }
+                    }
+                }
+        );
+    }
+
 }
