@@ -67,46 +67,54 @@ Start the application to open the main menu.
 - Choose **Lessons** to select a puzzle difficulty and solve a chess puzzle. 
   - In puzzle mode, use **Hint** when you need assistance. 
 - Use the in-game menu to return to the main menu or leave a game ('Forfeit' button ends the game, while 'Main Menu' button redirects you to the main menu, with the option to continue the game).
+- Click F11 to toggle fullscreen
+## Project structure
 
+```text
 ## Project structure
 
 ```text
 ChessGame/
 ├── pom.xml
-├── src/
-│   └── main/
-│       ├── java/
-│       │   ├── Main.java
-│       │   ├── bots/
-│       │   │   ├── Bot.java
-│       │   │   └── MiniMax.java
-│       │   ├── game/
-│       │   │   ├── ChessBoard.java
-│       │   │   ├── Game.java
-│       │   │   ├── GameState.java
-│       │   │   ├── Lessons.java
-│       │   │   ├── Move.java
-│       │   │   ├── PiecesLayout.java
-│       │   │   ├── Puzzle.java
-│       │   │   └── PuzzleLoader.java
-│       │   ├── pieces/
-│       │   │   ├── Piece.java
-│       │   │   ├── Pawn.java
-│       │   │   ├── Knight.java
-│       │   │   ├── Bishop.java
-│       │   │   ├── Rook.java
-│       │   │   ├── Queen.java
-│       │   │   └── King.java
-│       │   └── ...
-│       └── resources/
-│           ├── background/
-│           │   └── background.jpg
-│           ├── board/
-│           │   └── board_brown.png
-│           ├── pieces/
-│           └── puzzles/
-│               └── lichess_puzzles_1000_random.csv
-└── README.md
+├── README.md
+└── src/
+    └── main/
+        ├── java/
+        │   ├── app/
+        │   │   └── Main.java
+        │   ├── bots/
+        │   │   ├── Bot.java
+        │   │   └── MiniMax.java
+        │   ├── game/
+        │   │   ├── Game.java
+        │   │   ├── GameState.java
+        │   │   ├── Move.java
+        │   │   ├── PiecesLayout.java
+        │   │   ├── Puzzle.java
+        │   │   └── PuzzleLoader.java
+        │   ├── lessons/
+        │   │   └── Lessons.java
+        │   ├── pieces/
+        │   │   ├── Piece.java
+        │   │   ├── Pawn.java
+        │   │   ├── Knight.java
+        │   │   ├── Bishop.java
+        │   │   ├── Rook.java
+        │   │   ├── Queen.java
+        │   │   └── King.java
+        │   └── ui/
+        │       ├── ChessBoard.java
+        │       ├── BackgroundPanel.java
+        │       └── MenuButton.java
+        └── resources/
+            ├── background/
+            │   └── background.jpg
+            ├── board/
+            │   └── board_brown.png
+            ├── pieces/
+            │   └── ...
+            └── puzzles/
+                └── lichess_puzzles_1000_random.csv
 ```
 
 ## Main components
