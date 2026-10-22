@@ -140,10 +140,10 @@ Keep these resources in their existing locations so the application can load the
 
 ## Troubleshooting
 
-- **`mvn: command not found`** — install Maven, or use Maven support in IntelliJ IDEA.
+- **mvn: command not found** — install Maven, or use Maven support in IntelliJ IDEA.
 - **Unsupported Java version / compilation errors** — check that both Maven and IntelliJ use JDK 21 or newer.
 - **The window does not open** — run the application in a desktop environment with graphical display support; Swing applications generally cannot display a window in a headless environment.
-- **Images or puzzles are missing** — check that files remain under `src/main/resources/` and that the project was built with `mvn clean package`.
+- **Images or puzzles are missing** — check that files remain under `src/main/resources/`.
 
 ## Authors
 
