@@ -1,27 +1,55 @@
 package app;
 
 import bots.MiniMax;
-import ui.ChessBoard;
 import game.Game;
-import lessons.Lessons;
 import game.PiecesLayout;
+import lessons.Lessons;
 import ui.BackgroundPanel;
+import ui.ChessBoard;
 import ui.MenuButton;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
 import java.util.Random;
 
+/**
+ * The start of the chess game: builds the window with the menu and starts the games.
+ */
 public class Main {
 
+    private static final Color BACKGROUND_COLOR = new Color(63, 63, 63); // The grey of the game.
+    private static final String BACKGROUND_IMAGE = "/background/background.jpg"; // Menu background.
 
-    // Current PvP / CPU board (null when no such game is in progress)
-    private static final ChessBoard[] currentBoard = new ChessBoard[1];
-    // Which mode currentBoard belongs to: "pvp" or "cpu"
-    private static String currentMode = null;
+    // The current Player vs Player or Player vs CPU board (null when there is no such game).
+    private static ChessBoard currentBoard;
 
+    private static String currentMode = null; // Mode of currentBoard: "pvp" or "cpu".
+    private static boolean isFullscreen = true; // Whether the window fills the whole screen.
+    private static Rectangle previousBounds; // The window bounds before fullscreen.
+
+    // Start a lesson with a random puzzle of a difficulty.
     private static void startLesson(
             String difficulty,
             JPanel gamePanel,
@@ -30,17 +58,16 @@ public class Main {
             JPanel cards,
             JButton hintButton,
             ChessBoard[] currentLessonBoard
-
     ) {
         gamePanel.removeAll();
-        currentBoard[0] = null;   // any PvP/CPU board was just removed
+        currentBoard = null; // Any PvP or CPU board was just removed.
         currentMode = null;
         hintButton.setVisible(true);
 
         ChessBoard lessonBoard = Lessons.createBoard(
                 difficulty,
 
-                // What happens when Main Menu is clicked
+                // What happens when Main Menu is clicked.
                 () -> {
                     hintButton.setVisible(false);
                     gamePanel.removeAll();
@@ -50,7 +77,7 @@ public class Main {
                     cardLayout.show(cards, "MENU");
                 },
 
-                // What happens when Next Puzzle is clicked
+                // What happens when Next Puzzle is clicked.
                 () -> startLesson(
                         difficulty,
                         gamePanel,
@@ -63,18 +90,16 @@ public class Main {
         );
 
         currentLessonBoard[0] = lessonBoard;
-
         hintButton.setVisible(true);
 
         gamePanel.add(topPanel, BorderLayout.NORTH);
         gamePanel.add(lessonBoard, BorderLayout.CENTER);
-
         gamePanel.revalidate();
         gamePanel.repaint();
         cardLayout.show(cards, "GAME");
     }
 
-    // Starts (or resumes) a Player vs Player or Player vs CPU game
+    // Start (or resume) a Player vs Player or Player vs CPU game.
     private static void startVersus(
             boolean vsCpu,
             JPanel gamePanel,
@@ -85,34 +110,37 @@ public class Main {
     ) {
         String mode = vsCpu ? "cpu" : "pvp";
 
-        // Resume the game in progress if it is the same mode
-        if (currentBoard[0] != null && mode.equals(currentMode)) {
+        // Resume the game in progress if it is the same mode.
+        if (currentBoard != null && mode.equals(currentMode)) {
             cardLayout.show(cards, "GAME");
+
             return;
         }
 
-        // Clear anything left over (lesson board, or a game of the other mode)
+        // Clear anything left over (a lesson board, or a game of the other mode).
         gamePanel.removeAll();
         gamePanel.add(topPanel, BorderLayout.NORTH);
 
         PiecesLayout layout = new PiecesLayout();
-        layout.setupStartPositions();
-        Game game = new Game(layout);
 
+        layout.setupStartPositions();
+
+        Game game = new Game(layout);
         char botsColor = 'n';
         MiniMax bot = null;
+
         if (vsCpu) {
             botsColor = new Random().nextBoolean() ? 'b' : 'w';
             bot = new MiniMax(botsColor, depth);
         }
 
         currentMode = mode;
-        currentBoard[0] = new ChessBoard(
+        currentBoard = new ChessBoard(
                 layout,
                 game,
                 () -> {
-                    gamePanel.remove(currentBoard[0]);
-                    currentBoard[0] = null;
+                    gamePanel.remove(currentBoard);
+                    currentBoard = null;
                     currentMode = null;
 
                     gamePanel.revalidate();
@@ -123,30 +151,50 @@ public class Main {
                 botsColor,
                 bot
         );
-        gamePanel.add(currentBoard[0], BorderLayout.CENTER);
+
+        gamePanel.add(currentBoard, BorderLayout.CENTER);
         gamePanel.revalidate();
         gamePanel.repaint();
         cardLayout.show(cards, "GAME");
     }
 
-    private static boolean isFullscreen = true;
-    private static Rectangle previousBounds;
+    // Give menu buttons the same alignment and size.
+    private static void styleMenuButtons(JButton[] buttons, Dimension size, Dimension maxSize) {
+        for (int i = 0; i < buttons.length; i++) {
+            JButton button = buttons[i];
 
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.setPreferredSize(size);
+            button.setMaximumSize(maxSize);
+            button.setBorder(BorderFactory.createLineBorder(
+                    i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
+        }
+    }
+
+    /**
+     * Start the chess game: build the window with all screens and show it.
+     *
+     * @param args the command line arguments (not used)
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Chess");
-            Image icon = Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/pieces/wP.png"));
+            Image icon = Toolkit.getDefaultToolkit()
+                    .getImage(Main.class.getResource("/pieces/wP.png"));
+
             frame.setIconImage(icon);
 
-            // CardLayout lets us switch between screens
+            // CardLayout lets us switch between screens.
             CardLayout cardLayout = new CardLayout();
             JPanel cards = new JPanel(cardLayout);
 
             // =========================
             // MAIN MENU
             // =========================
-            JPanel mainMenu = new BackgroundPanel("/background/background.jpg");
+            JPanel mainMenu = new BackgroundPanel(BACKGROUND_IMAGE);
+
             mainMenu.setLayout(new BoxLayout(mainMenu, BoxLayout.Y_AXIS));
+
             JButton playerVsPlayerButton = new MenuButton("Player vs Player");
             JButton playerVsCpuButton = new MenuButton("Player vs CPU");
             JButton lessonsButton = new MenuButton("Lessons");
@@ -154,16 +202,11 @@ public class Main {
             ChessBoard[] currentLessonBoard = new ChessBoard[1];
             Dimension buttonSize = new Dimension(200, 60);
             Dimension maxButtonSize = new Dimension(450, 90);
+            JButton[] menuButtons = {
+                playerVsPlayerButton, playerVsCpuButton, lessonsButton, exitButton
+            };
 
-            JButton[] menuButtons = {playerVsPlayerButton, playerVsCpuButton, lessonsButton, exitButton};
-            for (int i = 0; i < menuButtons.length; i++) {
-                JButton button = menuButtons[i];
-                button.setAlignmentX(Component.CENTER_ALIGNMENT);
-                button.setPreferredSize(buttonSize);
-                button.setMaximumSize(maxButtonSize);
-                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
-            }
-
+            styleMenuButtons(menuButtons, buttonSize, maxButtonSize);
 
             mainMenu.add(Box.createVerticalGlue());
             mainMenu.add(playerVsPlayerButton);
@@ -179,68 +222,62 @@ public class Main {
             // GAME SCREEN
             // =========================
             JPanel gamePanel = new JPanel(new BorderLayout());
-            gamePanel.setBackground(new Color(63, 63, 63));
             JPanel topPanel = new JPanel(new BorderLayout());
-            topPanel.setBackground(new Color(63, 63, 63));
 
+            gamePanel.setBackground(BACKGROUND_COLOR);
+            topPanel.setBackground(BACKGROUND_COLOR);
+
+            // The difficulty levels of the lessons.
             JButton easyButton = new MenuButton("Easy");
-            easyButton.setForeground(Color.GREEN);
             JButton mediumButton = new MenuButton("Medium");
-            mediumButton.setForeground(Color.YELLOW);
             JButton hardButton = new MenuButton("Hard");
-            hardButton.setForeground(Color.RED);
             JButton mainMenuButton = new MenuButton("Main Menu");
-            JPanel difficultyPanel = new BackgroundPanel("/background/background.jpg");
-            difficultyPanel.setLayout(
-                    new BoxLayout(difficultyPanel, BoxLayout.Y_AXIS)
-            );
+            JPanel difficultyPanel = new BackgroundPanel(BACKGROUND_IMAGE);
             JButton[] diffButtons = {easyButton, mediumButton, hardButton, mainMenuButton};
 
+            easyButton.setForeground(Color.GREEN);
+            mediumButton.setForeground(Color.YELLOW);
+            hardButton.setForeground(Color.RED);
+            difficultyPanel.setLayout(new BoxLayout(difficultyPanel, BoxLayout.Y_AXIS));
+
+            // The difficulty levels of the bot (separate buttons, because a component can only
+            // have one parent).
             JButton veryEasyButton = new MenuButton("Very easy");
-            veryEasyButton.setForeground(Color.GREEN);
             JButton cpuEasyButton = new MenuButton("Easy");
-            cpuEasyButton.setForeground(Color.GREEN);
             JButton cpuMediumButton = new MenuButton("Medium");
-            cpuMediumButton.setForeground(Color.YELLOW);
             JButton cpuHardButton = new MenuButton("Hard");
-            cpuHardButton.setForeground(Color.RED);
             JButton veryHardButton = new MenuButton("Very hard");
-            veryHardButton.setForeground(Color.RED);
             JButton cpuMainMenuButton = new MenuButton("Main Menu");
-            JPanel difficultyPanelforBot = new BackgroundPanel("/background/background.jpg");
-            difficultyPanelforBot.setLayout(
-                    new BoxLayout(difficultyPanelforBot, BoxLayout.Y_AXIS)
-            );
-            JButton[] diffButtonsForBot = {veryEasyButton, cpuEasyButton, cpuMediumButton, cpuHardButton, veryHardButton, cpuMainMenuButton};
+            JPanel difficultyPanelForBot = new BackgroundPanel(BACKGROUND_IMAGE);
+            JButton[] diffButtonsForBot = {
+                veryEasyButton, cpuEasyButton, cpuMediumButton, cpuHardButton, veryHardButton,
+                cpuMainMenuButton
+            };
+
+            veryEasyButton.setForeground(Color.GREEN);
+            cpuEasyButton.setForeground(Color.GREEN);
+            cpuMediumButton.setForeground(Color.YELLOW);
+            cpuHardButton.setForeground(Color.RED);
+            veryHardButton.setForeground(Color.RED);
+            difficultyPanelForBot.setLayout(
+                    new BoxLayout(difficultyPanelForBot, BoxLayout.Y_AXIS));
 
             JButton hintButton = new MenuButton("Hint");
-            hintButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             Dimension hintButtonSize = new Dimension(100, 30);
+
+            hintButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             hintButton.setPreferredSize(hintButtonSize);
             hintButton.setMaximumSize(maxButtonSize);
             hintButton.setVisible(false);
 
-            hintButton.addActionListener(e -> {
+            hintButton.addActionListener(event -> {
                 if (currentLessonBoard[0] != null) {
                     currentLessonBoard[0].activateHint();
                 }
             });
 
-            for (int i = 0; i < diffButtons.length; i++) {
-                JButton button = diffButtons[i];
-                button.setAlignmentX(Component.CENTER_ALIGNMENT);
-                button.setPreferredSize(buttonSize);
-                button.setMaximumSize(maxButtonSize);
-                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
-            }
-
-            for (int i = 0; i < diffButtonsForBot.length; i++) {
-                JButton button = diffButtonsForBot[i];
-                button.setAlignmentX(Component.CENTER_ALIGNMENT);
-                button.setPreferredSize(buttonSize);
-                button.setMaximumSize(maxButtonSize);
-                button.setBorder(BorderFactory.createLineBorder(i == 0 ? Color.GRAY : Color.LIGHT_GRAY, 3, true));
-            }
+            styleMenuButtons(diffButtons, buttonSize, maxButtonSize);
+            styleMenuButtons(diffButtonsForBot, buttonSize, maxButtonSize);
 
             difficultyPanel.add(Box.createVerticalGlue());
             difficultyPanel.add(easyButton);
@@ -252,76 +289,68 @@ public class Main {
             difficultyPanel.add(mainMenuButton);
             difficultyPanel.add(Box.createVerticalGlue());
 
-            lessonsButton.addActionListener(e -> cardLayout.show(cards, "DIFFICULTY"));
+            lessonsButton.addActionListener(event -> cardLayout.show(cards, "DIFFICULTY"));
 
-            easyButton.addActionListener(e ->
-                    startLesson("easy", gamePanel, topPanel, cardLayout, cards, hintButton, currentLessonBoard)
-            );
+            easyButton.addActionListener(event -> startLesson("easy", gamePanel, topPanel,
+                    cardLayout, cards, hintButton, currentLessonBoard));
+            mediumButton.addActionListener(event -> startLesson("medium", gamePanel, topPanel,
+                    cardLayout, cards, hintButton, currentLessonBoard));
+            hardButton.addActionListener(event -> startLesson("difficult", gamePanel, topPanel,
+                    cardLayout, cards, hintButton, currentLessonBoard));
 
-            mediumButton.addActionListener(e ->
-                    startLesson("medium", gamePanel, topPanel, cardLayout, cards, hintButton, currentLessonBoard)
-            );
-
-            hardButton.addActionListener(e ->
-                    startLesson("difficult", gamePanel, topPanel, cardLayout, cards, hintButton, currentLessonBoard)
-            );
-
-            mainMenuButton.addActionListener(e -> {
+            mainMenuButton.addActionListener(event -> {
                 hintButton.setVisible(false);
                 cardLayout.show(cards, "MENU");
             });
 
-            difficultyPanelforBot.add(Box.createVerticalGlue());
+            difficultyPanelForBot.add(Box.createVerticalGlue());
+
             for (int i = 0; i < diffButtonsForBot.length; i++) {
-                difficultyPanelforBot.add(diffButtonsForBot[i]);
-                difficultyPanelforBot.add(Box.createVerticalStrut(20));
+                difficultyPanelForBot.add(diffButtonsForBot[i]);
+                difficultyPanelForBot.add(Box.createVerticalStrut(20));
             }
-            difficultyPanelforBot.add(Box.createVerticalGlue());
 
-            veryEasyButton.addActionListener(e ->
-                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 1)
-            );
-            cpuEasyButton.addActionListener(e ->
-                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 2)
-            );
-            cpuMediumButton.addActionListener(e ->
-                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 3)
-            );
-            cpuHardButton.addActionListener(e ->
-                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 4)
-            );
-            veryHardButton.addActionListener(e ->
-                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 5)
-            );
-            cpuMainMenuButton.addActionListener(e -> cardLayout.show(cards, "MENU"));
+            difficultyPanelForBot.add(Box.createVerticalGlue());
 
+            // The level 1 to 5 is the number of moves the bot looks ahead.
+            veryEasyButton.addActionListener(event ->
+                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 1));
+            cpuEasyButton.addActionListener(event ->
+                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 2));
+            cpuMediumButton.addActionListener(event ->
+                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 3));
+            cpuHardButton.addActionListener(event ->
+                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 4));
+            veryHardButton.addActionListener(event ->
+                    startVersus(true, gamePanel, topPanel, cardLayout, cards, 5));
+            cpuMainMenuButton.addActionListener(event -> cardLayout.show(cards, "MENU"));
 
             JButton menuButton = new MenuButton("☰");
             JPopupMenu popupMenu = new JPopupMenu();
-            popupMenu.setBackground(new Color(63, 63, 63));
-
             JMenuItem backToMainMenu = new JMenuItem("Main Menu");
             JMenuItem forfeit = new JMenuItem("Forfeit");
             JMenuItem exit = new JMenuItem("Exit");
-            backToMainMenu.setBackground(new Color(63, 63, 63));
-            forfeit.setBackground(new Color(63, 63, 63));
-            exit.setBackground(new Color(63, 63, 63));
-            backToMainMenu.setForeground(new Color(255, 255, 255));
-            forfeit.setForeground(new Color(255, 255, 255));
-            exit.setForeground(new Color(255, 255, 255));
 
+            popupMenu.setBackground(BACKGROUND_COLOR);
+            backToMainMenu.setBackground(BACKGROUND_COLOR);
+            forfeit.setBackground(BACKGROUND_COLOR);
+            exit.setBackground(BACKGROUND_COLOR);
+            backToMainMenu.setForeground(Color.WHITE);
+            forfeit.setForeground(Color.WHITE);
+            exit.setForeground(Color.WHITE);
 
             popupMenu.add(backToMainMenu);
             popupMenu.add(forfeit);
             popupMenu.addSeparator();
             popupMenu.add(exit);
 
-            menuButton.addActionListener(e -> popupMenu.show(menuButton, 0, menuButton.getHeight()));
+            menuButton.addActionListener(event ->
+                    popupMenu.show(menuButton, 0, menuButton.getHeight()));
 
             JPanel topLeftPanel = new JPanel();
-            topLeftPanel.setBackground(new Color(63, 63, 63));
-            topLeftPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
+            topLeftPanel.setBackground(BACKGROUND_COLOR);
+            topLeftPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
             topLeftPanel.add(menuButton);
             topLeftPanel.add(hintButton);
 
@@ -331,33 +360,34 @@ public class Main {
             cards.add(mainMenu, "MENU");
             cards.add(gamePanel, "GAME");
             cards.add(difficultyPanel, "DIFFICULTY");
-            cards.add(difficultyPanelforBot, "CPU_DIFFICULTY");
+            cards.add(difficultyPanelForBot, "CPU_DIFFICULTY");
 
             // =========================
             // BUTTON ACTIONS
             // =========================
-            playerVsPlayerButton.addActionListener(e ->
-                    startVersus(false, gamePanel, topPanel, cardLayout, cards, 0)
-            );
+            playerVsPlayerButton.addActionListener(event ->
+                    startVersus(false, gamePanel, topPanel, cardLayout, cards, 0));
 
-            playerVsCpuButton.addActionListener(e -> {
-                if (currentBoard[0] != null && "cpu".equals(currentMode)) {
+            // A game against the bot in progress is resumed, otherwise the level is chosen.
+            playerVsCpuButton.addActionListener(event -> {
+                if (currentBoard != null && "cpu".equals(currentMode)) {
                     startVersus(true, gamePanel, topPanel, cardLayout, cards, 0);
                 } else {
                     cardLayout.show(cards, "CPU_DIFFICULTY");
                 }
             });
 
-            backToMainMenu.addActionListener(e -> {
+            backToMainMenu.addActionListener(event -> {
                 hintButton.setVisible(false);
                 cardLayout.show(cards, "MENU");
             });
 
-            forfeit.addActionListener(e -> {
+            forfeit.addActionListener(event -> {
                 hintButton.setVisible(false);
-                if (currentBoard[0] != null) {
-                    gamePanel.remove(currentBoard[0]);
-                    currentBoard[0] = null;
+
+                if (currentBoard != null) {
+                    gamePanel.remove(currentBoard);
+                    currentBoard = null;
                     currentMode = null;
                 }
 
@@ -366,72 +396,64 @@ public class Main {
 
                 cardLayout.show(cards, "MENU");
             });
-            exit.addActionListener(e -> System.exit(0));
-            exitButton.addActionListener(e -> System.exit(0));
 
+            exit.addActionListener(event -> System.exit(0));
+            exitButton.addActionListener(event -> System.exit(0));
 
             // =========================
             // FRAME
             // =========================
-
-
             frame.add(cards);
             frame.setPreferredSize(new Dimension(640, 700));
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
             frame.setUndecorated(true);
             frame.pack();
-            GraphicsDevice screen = GraphicsEnvironment
-                    .getLocalGraphicsEnvironment().getDefaultScreenDevice();
+
+            GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                    .getDefaultScreenDevice();
 
             frame.setBounds(screen.getDefaultConfiguration().getBounds());
             setupFullscreen(frame);
             frame.setVisible(true);
         });
     }
+
+    // Let the player switch between fullscreen and a normal window with the F11 key.
     private static void setupFullscreen(JFrame frame) {
-        frame.getRootPane().getInputMap(
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        ).put(KeyStroke.getKeyStroke("F11"), "toggleFullscreen");
+        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("F11"), "toggleFullscreen");
 
-        frame.getRootPane().getActionMap().put(
-                "toggleFullscreen",
-                new AbstractAction() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        GraphicsDevice screen = GraphicsEnvironment
-                                .getLocalGraphicsEnvironment()
-                                .getDefaultScreenDevice();
+        frame.getRootPane().getActionMap().put("toggleFullscreen", new AbstractAction() {
+            /** Switch between fullscreen and a normal window. */
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                        .getDefaultScreenDevice();
 
-                        if (!isFullscreen) {
-                            previousBounds = frame.getBounds();
+                if (!isFullscreen) {
+                    previousBounds = frame.getBounds();
 
-                            frame.dispose();
-                            frame.setUndecorated(true);
-                            frame.setBounds(
-                                    screen.getDefaultConfiguration().getBounds()
-                            );
-                            frame.setVisible(true);
+                    frame.dispose();
+                    frame.setUndecorated(true);
+                    frame.setBounds(screen.getDefaultConfiguration().getBounds());
+                    frame.setVisible(true);
 
-                            isFullscreen = true;
-                        } else {
-                            frame.dispose();
-                            frame.setUndecorated(false);
+                    isFullscreen = true;
+                } else {
+                    frame.dispose();
+                    frame.setUndecorated(false);
 
-                            if (previousBounds != null) {
-                                frame.setBounds(previousBounds);
-                            } else {
-                                frame.setSize(640, 700);
-                                frame.setLocationRelativeTo(null);
-                            }
-
-                            frame.setVisible(true);
-                            isFullscreen = false;
-                        }
+                    if (previousBounds != null) {
+                        frame.setBounds(previousBounds);
+                    } else {
+                        frame.setSize(640, 700);
+                        frame.setLocationRelativeTo(null);
                     }
-                }
-        );
-    }
 
+                    frame.setVisible(true);
+                    isFullscreen = false;
+                }
+            }
+        });
+    }
 }

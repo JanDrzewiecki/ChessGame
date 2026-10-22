@@ -1,40 +1,67 @@
 package ui;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 import java.net.URL;
 
+/**
+ * A panel with a picture as background, darkened a little.
+ */
 public class BackgroundPanel extends JPanel {
 
-    private final Image image;
+    private final Image image; // The background picture, or null if it could not be found.
 
+    /**
+     * Create a panel with a background picture.
+     *
+     * @param resourcePath the path of the picture in the resources, for example "/a/b.jpg"
+     */
     public BackgroundPanel(String resourcePath) {
         URL url = getClass().getResource(resourcePath);
+
         image = (url != null) ? new ImageIcon(url).getImage() : null;
     }
 
+    /**
+     * Draw the picture, scaled to cover the whole panel, and a dark layer over it.
+     *
+     * @param graphics the graphics to draw on
+     */
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (image == null) return;   // falls back to the normal grey background
+    protected void paintComponent(Graphics graphics) {
+        super.paintComponent(graphics);
 
-        int iw = image.getWidth(this);
-        int ih = image.getHeight(this);
-        if (iw <= 0 || ih <= 0) return;
+        if (image == null) {
+            return; // Falls back to the normal grey background.
+        }
 
-        // Scale to cover the whole panel, keeping the aspect ratio, centered
-        double scale = Math.max(getWidth() / (double) iw, getHeight() / (double) ih);
-        int w = (int) Math.round(iw * scale);
-        int h = (int) Math.round(ih * scale);
-        int x = (getWidth() - w) / 2;
-        int y = (getHeight() - h) / 2;
+        int imageWidth = image.getWidth(this);
+        int imageHeight = image.getHeight(this);
 
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+        if (imageWidth <= 0 || imageHeight <= 0) {
+            return;
+        }
+
+        // Scale to cover the whole panel, keeping the aspect ratio, centered.
+        double scale = Math.max(getWidth() / (double) imageWidth,
+                getHeight() / (double) imageHeight);
+        int scaledWidth = (int) Math.round(imageWidth * scale);
+        int scaledHeight = (int) Math.round(imageHeight * scale);
+        int x = (getWidth() - scaledWidth) / 2;
+        int y = (getHeight() - scaledHeight) / 2;
+
+        Graphics2D graphics2d = (Graphics2D) graphics.create();
+
+        graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2.drawImage(image, x, y, w, h, this);
-        g2.setColor(new Color(0, 0, 0, 100));
-        g2.fillRect(0, 0, getWidth(), getHeight());
-        g2.dispose();
+        graphics2d.drawImage(image, x, y, scaledWidth, scaledHeight, this);
+        graphics2d.setColor(new Color(0, 0, 0, 100));
+        graphics2d.fillRect(0, 0, getWidth(), getHeight());
+        graphics2d.dispose();
     }
 }
